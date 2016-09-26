@@ -89,7 +89,7 @@ function handleError(res, reason, message, code) {
  *    POST: creates a new seed
  */
 
-app.get("/pins", function(req, res) {
+app.get("/api/pins", function(req, res) {
   var searchArea = (req.query.searchArea || '').split(',');
   var filters = searchArea.length == 4 ? {
     $and: [
@@ -112,7 +112,7 @@ app.get("/pins", function(req, res) {
 
 });
 
-app.post("api/pins", function(req, res) {
+app.post("/api/pins", function(req, res) {
   var newPin = req.body;
   newPin.createDate = new Date();
 
@@ -142,7 +142,7 @@ app.post("api/pins", function(req, res) {
  *    DELETE: deletes pin by id
  */
 
-app.get("api/pins/:id", function(req, res) {
+app.get("/api/pins/:id", function(req, res) {
   db.collection(PINS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, doc) {
       if (err) {
         handleError(res, err.message, "Failed to get pin");
@@ -152,7 +152,7 @@ app.get("api/pins/:id", function(req, res) {
   });
 });
 
-app.put("api/pins/:id", function(req, res) {
+app.put("/api/pins/:id", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc._id;
 
@@ -165,7 +165,7 @@ app.put("api/pins/:id", function(req, res) {
   });
 });
 
-app.delete("api/pins/:id", function(req, res) {
+app.delete("/api/pins/:id", function(req, res) {
   db.collection(PINS_COLLECTION).deleteOne({_id: new ObjectID(req.params.id)}, function(err, result) {
     if (err) {
       handleError(res, err.message, "Failed to delete pin");
@@ -182,7 +182,7 @@ app.delete("api/pins/:id", function(req, res) {
         bottomRightLat : latitude of the bottom right of the bounding box
         bottomRightLong : longitude of the bottom right of the bounding box
 
-app.get("api/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", function(req, res) {
+app.get("/api/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", function(req, res) {
   db.collection(PINS_COLLECTION)
       .find({
           $and: [ { "coordinate.latitude"  : { $gte: req.params.bottomRightLat  } } ,
@@ -202,7 +202,7 @@ app.get("api/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", fu
 // PUT "/pins/like/:id/
 // Adds a like to the Pin ID
 
-app.put("api/pins/like/:id", function(req, res) {
+app.put("/api/pins/like/:id", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc._id;
 
@@ -219,7 +219,7 @@ app.put("api/pins/like/:id", function(req, res) {
 // PUT "/pins/unlike/:id/
 // Takes a like from the Pin ID
 
-app.put("api/pins/unlike/:id", function(req, res) {
+app.put("/api/pins/unlike/:id", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc._id;
 
@@ -234,7 +234,7 @@ app.put("api/pins/unlike/:id", function(req, res) {
 });
 
 // PUT Review with Pin ID
-app.put("api/pins/review/:id", function(req, res) {
+app.put("/api/pins/review/:id", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc._id;
   updateDoc.createDate = new Date();
@@ -252,7 +252,7 @@ app.put("api/pins/review/:id", function(req, res) {
 // -------------- ACCOUNT API BELOW ------------
 var ACCOUNTS_COLLECTION = "accounts";
 // POST Account
-app.post("api/accounts", function(req, res) {
+app.post("/api/accounts", function(req, res) {
   var newAccount = req.body;
   newAccount.createDate = new Date();
 
@@ -273,7 +273,7 @@ app.post("api/accounts", function(req, res) {
 });
 
 // PUT Account Password
-app.put("api/accounts/:id/changePassword", function(req, res) {
+app.put("/api/accounts/:id/changePassword", function(req, res) {
 
   if (req.body.password) {
       handleError(res, "Invalid user input", "Must provide new password in request body.", 400);
@@ -292,7 +292,7 @@ app.put("api/accounts/:id/changePassword", function(req, res) {
 });
 
 // PUT Account Seed Amount
-app.put("api/accounts/:id/seedChange/:amount", function(req, res) {
+app.put("/api/accounts/:id/seedChange/:amount", function(req, res) {
   db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate( {_id: new ObjectID(req.params.id)} ,
     { $inc: { "numSeeds" : req.params.amount } } ,
     function(err, doc) {
