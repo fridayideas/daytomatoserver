@@ -199,10 +199,10 @@ app.get("/api/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", f
 });
 */
 
-// PUT "/pins/like/:id/
+// POST "/pins/like/:id/
 // Adds a like to the Pin ID
 
-app.put("/api/pins/like/:id", function(req, res) {
+app.post("/api/pins/:id/likes", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc._id;
 
@@ -216,10 +216,10 @@ app.put("/api/pins/like/:id", function(req, res) {
   });
 });
 
-// PUT "/pins/unlike/:id/
+// POST "/pins/dislikes/:id/
 // Takes a like from the Pin ID
 
-app.put("/api/pins/unlike/:id", function(req, res) {
+app.post("/api/pins/:id/dislikes", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc._id;
 
@@ -233,8 +233,8 @@ app.put("/api/pins/unlike/:id", function(req, res) {
   });
 });
 
-// PUT Review with Pin ID
-app.put("/api/pins/review/:id", function(req, res) {
+// POST Review with Pin ID
+app.post("/api/pins/:id/review", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc._id;
   updateDoc.createDate = new Date();
