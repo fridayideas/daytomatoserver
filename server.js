@@ -18,15 +18,17 @@ Database Schema
     "longitude": <double>
   },
   "linkedAccount": <ObjectId>,
-  "reviews": <List>
-}
-
-//REVIEWS
-{
-  "_id": <ObjectId>
-  "linkedPin": <ObjectId>,
-  "linkedAccount": <ObjectId>,
-  "text": <string>
+  "reviews": [ {
+        "linkedAccount": <ObjectId>,
+        "text": <string>,
+        "date": <DateTime>
+        },
+        {
+        "linkedAccount": <ObjectId>,
+        "text": <string>,
+        "date": <DateTime>
+        } ...
+      ]
 }
 
 //ACCOUNTS
@@ -39,7 +41,7 @@ Database Schema
 }
 */
 
-var PINS_COLLECTION = "pins";
+// -------------- DATABASE SET UP ------------
 
 var app = express();
 app.use(express.static(__dirname + "/public"));
@@ -66,8 +68,9 @@ mongodb.MongoClient.connect("mongodb://admin:seng480b@ds041556.mlab.com:41556/fr
   });
 });
 
-// PINS API ROUTES BELOW
+// -------------- PINS API BELOW ------------
 
+var PINS_COLLECTION = "pins";
 // Generic error handler used by all endpoints.
 function handleError(res, reason, message, code) {
   console.log("ERROR: " + reason);
@@ -109,7 +112,7 @@ app.get("/pins", function(req, res) {
 
 });
 
-app.post("/pins", function(req, res) {
+app.post("api/pins", function(req, res) {
   var newPin = req.body;
   newPin.createDate = new Date();
 
@@ -119,6 +122,7 @@ app.post("/pins", function(req, res) {
   }
 
   newPin.likes = 0;
+  newPin.reviews = [];
   if (!req.body.duration){
     newPin.duration = -1; // Default duration, means never ending event (such as a park)
   }
@@ -138,7 +142,7 @@ app.post("/pins", function(req, res) {
  *    DELETE: deletes pin by id
  */
 
-app.get("/pins/:id", function(req, res) {
+app.get("api/pins/:id", function(req, res) {
   db.collection(PINS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, doc) {
       if (err) {
         handleError(res, err.message, "Failed to get pin");
@@ -148,7 +152,7 @@ app.get("/pins/:id", function(req, res) {
   });
 });
 
-app.put("/pins/:id", function(req, res) {
+app.put("api/pins/:id", function(req, res) {
   var updateDoc = req.body;
   delete updateDoc._id;
 
@@ -161,7 +165,7 @@ app.put("/pins/:id", function(req, res) {
   });
 });
 
-app.delete("/pins/:id", function(req, res) {
+app.delete("api/pins/:id", function(req, res) {
   db.collection(PINS_COLLECTION).deleteOne({_id: new ObjectID(req.params.id)}, function(err, result) {
     if (err) {
       handleError(res, err.message, "Failed to delete pin");
@@ -178,7 +182,7 @@ app.delete("/pins/:id", function(req, res) {
         bottomRightLat : latitude of the bottom right of the bounding box
         bottomRightLong : longitude of the bottom right of the bounding box
 
-app.get("/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", function(req, res) {
+app.get("api/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", function(req, res) {
   db.collection(PINS_COLLECTION)
       .find({
           $and: [ { "coordinate.latitude"  : { $gte: req.params.bottomRightLat  } } ,
@@ -194,3 +198,109 @@ app.get("/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", funct
       });
 });
 */
+
+// PUT "/pins/like/:id/
+// Adds a like to the Pin ID
+
+app.put("api/pins/like/:id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc._id;
+
+  db.collection(PINS_COLLECTION).findOneAndUpdate( {_id: new ObjectID(req.params.id)} , { $inc: { "likes" : 1 } } ,
+    function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to update pin");
+      } else {
+        res.status(204).end();
+      }
+  });
+});
+
+// PUT "/pins/unlike/:id/
+// Takes a like from the Pin ID
+
+app.put("api/pins/unlike/:id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc._id;
+
+  db.collection(PINS_COLLECTION).findOneAndUpdate( {_id: new ObjectID(req.params.id)} , { $inc: { "likes" : -1 } } ,
+    function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to update pin");
+      } else {
+        res.status(204).end();
+      }
+  });
+});
+
+// PUT Review with Pin ID
+app.put("api/pins/review/:id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc._id;
+  updateDoc.createDate = new Date();
+
+  db.collection(PINS_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, { $push: {reviews: updateDoc } },
+    function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to add review to pin");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+// -------------- ACCOUNT API BELOW ------------
+var ACCOUNTS_COLLECTION = "accounts";
+// POST Account
+app.post("api/accounts", function(req, res) {
+  var newAccount = req.body;
+  newAccount.createDate = new Date();
+
+  if (!(req.username || req.password)) {
+      handleError(res, "Invalid user input", "Must provide more user data.", 400);
+  }
+
+  newAccount.numSeeds = 0;
+  newAccount.numPins = 0;
+
+  db.collection(ACCOUNTS_COLLECTION).insertOne(newAccount, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to create new account.");
+    } else {
+      res.status(201).json(doc.ops[0]);
+    }
+  });
+});
+
+// PUT Account Password
+app.put("api/accounts/:id/changePassword", function(req, res) {
+
+  if (req.body.password) {
+      handleError(res, "Invalid user input", "Must provide new password in request body.", 400);
+  }
+
+  var newPassword = req.body.password;
+  db.collection(ACCOUNTS_COLLECTION).updateOne( {_id: new ObjectID(req.params.id)} ,
+    { $set: { "password" : newPassword } } ,
+    function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to update seed amount for account");
+      } else {
+        res.status(204).end();
+      }
+  });
+});
+
+// PUT Account Seed Amount
+app.put("api/accounts/:id/seedChange/:amount", function(req, res) {
+  db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate( {_id: new ObjectID(req.params.id)} ,
+    { $inc: { "numSeeds" : req.params.amount } } ,
+    function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to update seed amount for account");
+      } else {
+        res.status(204).end();
+      }
+  });
+});
+
