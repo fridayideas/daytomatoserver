@@ -10,14 +10,14 @@ Database Schema
 {
   "_id": <ObjectId>
   "rating": <string>,
-  "description": <string>, 
+  "description": <string>,
   "likes" : <int>,
   "duration": <long>,
   "coordinate": {
     "latitude": <double>,
     "longitude": <double>
   },
-  "linkedAccount": <ObjectId>, 
+  "linkedAccount": <ObjectId>,
   "reviews": <List>
 }
 
@@ -25,7 +25,7 @@ Database Schema
 {
   "_id": <ObjectId>
   "linkedPin": <ObjectId>,
-  "linkedAccount": <ObjectId>, 
+  "linkedAccount": <ObjectId>,
   "text": <string>
 }
 
@@ -33,7 +33,7 @@ Database Schema
 {
   "_id": <ObjectId>
   "username": <string>,
-  "password": <string>, 
+  "password": <string>,
   "numSeeds": <double>
   "numPins": <int>
 }
@@ -76,17 +76,36 @@ function handleError(res, reason, message, code) {
 
 /*  "/pins"
  *    GET: finds all pins
+ *      query params:
+ *        searchArea (optional): a set of coordinates to search in. The format is
+ *          `{topLeftLat},{topLeftLong},{bottomRightLat},{bottomRightLong}`, where:
+ *          topLeftLat = latitude of the top left of the bounding box
+ *          topLeftLong = longitude of the top left of the bounding box
+ *          bottomRightLat = latitude of the bottom right of the bounding box
+ *          bottomRightLong = longitude of the bottom right of the bounding box
  *    POST: creates a new seed
  */
 
 app.get("/pins", function(req, res) {
-  db.collection(PINS_COLLECTION).find({}).toArray(function(err, docs) {
-      if (err) {
-        handleError(res, err.message, "Failed to get contacts.");
-      } else {
-        res.status(200).json(docs);
-      }
-    });
+  var searchArea = (req.query.searchArea || '').split(',');
+  var filters = searchArea.length == 4 ? {
+    $and: [
+      { "coordinate.latitude"  : { $lte: searchArea[0] } },
+      { "coordinate.latitude"  : { $gte: searchArea[2] } },
+      { "coordinate.longitude" : { $lte: searchArea[1] } },
+      { "coordinate.longitude" : { $gte: searchArea[3] } }
+    ]
+  } : {};
+
+  db.collection(PINS_COLLECTION)
+      .find(filters)
+      .toArray(function(err, docs) {
+          if (err) {
+            handleError(res, err.message, "Failed to get contacts.");
+          } else {
+            res.status(200).json(docs);
+          }
+      });
 
 });
 
@@ -99,7 +118,7 @@ app.post("/pins", function(req, res) {
       handleError(res, "Invalid user input", "Must provide more data.", 400);
   }
 
-  newPin.likes = 0; 
+  newPin.likes = 0;
   if (!req.body.duration){
     newPin.duration = -1; // Default duration, means never ending event (such as a park)
   }
@@ -158,13 +177,13 @@ app.delete("/pins/:id", function(req, res) {
         topLeftLong : longitude of the top left of the bounding box
         bottomRightLat : latitude of the bottom right of the bounding box
         bottomRightLong : longitude of the bottom right of the bounding box
- */
+
 app.get("/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", function(req, res) {
   db.collection(PINS_COLLECTION)
       .find({
           $and: [ { "coordinate.latitude"  : { $gte: req.params.bottomRightLat  } } ,
-                  { "coordinate.latitude"  : { $lte: req.params.topLeftLat      } } , 
-                  { "coordinate.longitude" : { $lte: req.params.topLeftLong     } } , 
+                  { "coordinate.latitude"  : { $lte: req.params.topLeftLat      } } ,
+                  { "coordinate.longitude" : { $lte: req.params.topLeftLong     } } ,
                   { "coordinate.longitude" : { $gte: req.params.bottomRightLong } } ] } )
       .toArray(function(err, docs) {
           if (err) {
@@ -174,3 +193,4 @@ app.get("/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", funct
           }
       });
 });
+*/
