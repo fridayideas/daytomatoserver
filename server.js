@@ -18,15 +18,17 @@ Database Schema
     "longitude": <double>
   },
   "linkedAccount": <ObjectId>, 
-  "reviews": <List>
-}
-
-//REVIEWS
-{
-  "_id": <ObjectId>
-  "linkedPin": <ObjectId>,
-  "linkedAccount": <ObjectId>, 
-  "text": <string>
+  "reviews": [ {
+        "linkedAccount": <ObjectId>, 
+        "text": <string>,
+        "date": <DateTime>
+        },
+        {
+        "linkedAccount": <ObjectId>, 
+        "text": <string>, 
+        "date": <DateTime>
+        } ...
+      ]
 }
 
 //ACCOUNTS
@@ -39,7 +41,7 @@ Database Schema
 }
 */
 
-var PINS_COLLECTION = "pins";
+// -------------- DATABASE SET UP ------------
 
 var app = express();
 app.use(express.static(__dirname + "/public"));
@@ -66,8 +68,9 @@ mongodb.MongoClient.connect("mongodb://admin:seng480b@ds041556.mlab.com:41556/fr
   });
 });
 
-// PINS API ROUTES BELOW
+// -------------- PINS API BELOW ------------
 
+var PINS_COLLECTION = "pins";
 // Generic error handler used by all endpoints.
 function handleError(res, reason, message, code) {
   console.log("ERROR: " + reason);
@@ -100,6 +103,7 @@ app.post("/pins", function(req, res) {
   }
 
   newPin.likes = 0; 
+  newPin.reviews = [];
   if (!req.body.duration){
     newPin.duration = -1; // Default duration, means never ending event (such as a park)
   }
@@ -174,3 +178,60 @@ app.get("/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong", funct
           }
       });
 });
+
+// PUT "/pins/like/:id/
+// Adds a like to the Pin ID
+
+app.put("/pins/like/:id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc._id;
+
+  db.collection(PINS_COLLECTION).findOneAndUpdate( {_id: new ObjectID(req.params.id)} , { $inc: { "likes" : 1 } } , 
+    function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to update pin");
+      } else {
+        res.status(204).end();
+      }
+  });
+});
+
+// PUT "/pins/unlike/:id/
+// Takes a like from the Pin ID
+
+app.put("/pins/unlike/:id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc._id;
+
+  db.collection(PINS_COLLECTION).findOneAndUpdate( {_id: new ObjectID(req.params.id)} , { $inc: { "likes" : -1 } } , 
+    function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to update pin");
+      } else {
+        res.status(204).end();
+      }
+  });
+});
+
+// PUT Review with Pin ID
+app.put("/pins/review/:id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc._id;
+  updateDoc.createDate = new Date();
+
+  db.collection(PINS_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, { $push: {reviews: updateDoc } }, 
+    function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to add review to pin");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+// -------------- ACCOUNT API BELOW ------------
+
+// POST Account
+// PUT Account Password
+// PUT Account Seed Amount 
+

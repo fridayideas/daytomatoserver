@@ -1,0 +1,8 @@
+// Add a pin
+curl -H "Content-Type: application/json" -d '{"rating":"5", "description": "Baller","coordinate":{"latitude":"49","longitude":"50"}, "linkedAccount":"1"}' http://fridayideas-db.herokuapp.com/pins
+
+// Add a like
+curl -X PUT http://localhost:8080/pins/like/57e850e6d025440995ba81c1
+
+// Add a review
+curl -H "Content-Type: application/json" -X PUT -d '{"linkedAccount": 123,"text":"This place is awesome"}' http://fridayideas-db.herokuapp.com/pins/review/57e850e6d025440995ba81c1
