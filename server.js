@@ -273,7 +273,7 @@ app.post("/api/accounts", function(req, res) {
 });
 
 // PUT Account Password
-app.put("/api/accounts/:id/changePassword", function(req, res) {
+app.put("/api/accounts/:id/password", function(req, res) {
 
   if (req.body.password) {
       handleError(res, "Invalid user input", "Must provide new password in request body.", 400);
@@ -292,6 +292,7 @@ app.put("/api/accounts/:id/changePassword", function(req, res) {
 });
 
 // PUT Account Seed Amount
+// TODO this ain't terribly RESTful.
 app.put("/api/accounts/:id/seedChange/:amount", function(req, res) {
   db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate( {_id: new ObjectID(req.params.id)} ,
     { $inc: { "numSeeds" : req.params.amount } } ,
