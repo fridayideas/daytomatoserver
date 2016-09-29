@@ -41,7 +41,7 @@ Database Schema
 }
 */
 
-// -------------- DATABASE SET UP ------------
+// -------------- DATABASE SET UP ------------------------------
 
 var app = express();
 app.use(express.static(__dirname + "/public"));
@@ -68,7 +68,7 @@ mongodb.MongoClient.connect("mongodb://admin:seng480b@ds041556.mlab.com:41556/fr
   });
 });
 
-// -------------- PINS API BELOW ------------
+// -------------- PINS API BELOW -------------------------------
 
 var PINS_COLLECTION = "pins";
 // Generic error handler used by all endpoints.
@@ -249,7 +249,22 @@ app.post("/api/pins/:id/review", function(req, res) {
   });
 });
 
-// -------------- ACCOUNT API BELOW ------------
+// DELETE Review with Pin ID & Account IDs  
+app.post("/api/pins/:pinid/:accountid/review", function(req, res) {
+  console.log("Trying to remove from pin " + req.params.pinid + " review from account " + req.params.accountid)
+
+  db.collection(PINS_COLLECTION).update({_id: new ObjectID(req.params.pinid)}, 
+    { $pull: { reviews: { linkedAccount : parseInt(req.params.accountid) } } },
+    function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to remove review from pin");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+// -------------- ACCOUNT API BELOW -------------------------
 var ACCOUNTS_COLLECTION = "accounts";
 // POST Account
 app.post("/api/accounts", function(req, res) {
