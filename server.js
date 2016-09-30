@@ -10,6 +10,8 @@ Database Schema
 {
   "_id": <ObjectId>
   "rating": <string>,
+  "pinType": <int>,
+  "name": <string>
   "description": <string>, 
   "likes" : <int>,
   "duration": <long>,
@@ -18,7 +20,7 @@ Database Schema
     "longitude": <double>
   },
   "linkedAccount": <ObjectId>, 
-  "reviews": <List>
+  "reviews": [{"linkedAccount":<ObjectId>,"text":<string>,"createDate":"2016-09-30T02:44:20.637Z"}]
 }
 
 //REVIEWS
