@@ -10,6 +10,8 @@ Database Schema
 {
   "_id": <ObjectId>
   "rating": <string>,
+  "pinType": <int>,
+  "name": <string>,
   "description": <string>,
   "likes" : <int>,
   "duration": <long>,
@@ -17,6 +19,16 @@ Database Schema
     "latitude": <double>,
     "longitude": <double>
   },
+  "linkedAccount": <ObjectId>, 
+  "reviews": [{"linkedAccount":<ObjectId>,"text":<string>,"createDate":<Date>}...]
+}
+
+//REVIEWS
+{
+  "_id": <ObjectId>
+  "linkedPin": <ObjectId>,
+  "linkedAccount": <ObjectId>, 
+  "text": <string>
   "linkedAccount": <ObjectId>,
   "reviews": [ {
         "linkedAccount": <ObjectId>,
@@ -33,11 +45,10 @@ Database Schema
 
 //ACCOUNTS
 {
-  "_id": <ObjectId>
+  "_id": <ObjectId>,
   "username": <string>,
-  "password": <string>,
-  "numSeeds": <double>
-  "numPins": <int>
+  "seeds": <double>,
+  "pins": <int>
 }
 */
 
@@ -86,7 +97,7 @@ function handleError(res, reason, message, code) {
  *          topLeftLong = longitude of the top left of the bounding box
  *          bottomRightLat = latitude of the bottom right of the bounding box
  *          bottomRightLong = longitude of the bottom right of the bounding box
- *    POST: creates a new seed
+ *    POST: creates a new pin
  */
 
 app.get("/api/pins", function(req, res) {
@@ -100,26 +111,19 @@ app.get("/api/pins", function(req, res) {
     ]
   } : {};
 
-  db.collection(PINS_COLLECTION)
-      .find(filters)
-      .toArray(function(err, docs) {
-          if (err) {
-            handleError(res, err.message, "Failed to get contacts.");
-          } else {
-            res.status(200).json(docs);
-          }
-      });
-
+  db.collection(PINS_COLLECTION).find(filters)
+    .toArray(function(err, docs) {
+      if (err) {
+        handleError(res, err.message, "Failed to get pins.");
+      } else {
+        res.status(200).json(docs);
+      }
+    });
 });
 
 app.post("/api/pins", function(req, res) {
   var newPin = req.body;
   newPin.createDate = new Date();
-
-  if (!(req.body.rating || req.body.description ||
-    req.body.coordinate.latitude || req.body.coordinate.longitude || req.body.linkedAccount )) {
-      handleError(res, "Invalid user input", "Must provide more data.", 400);
-  }
 
   newPin.likes = 0;
   newPin.reviews = [];
@@ -144,11 +148,11 @@ app.post("/api/pins", function(req, res) {
 
 app.get("/api/pins/:id", function(req, res) {
   db.collection(PINS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, doc) {
-      if (err) {
-        handleError(res, err.message, "Failed to get pin");
-      } else {
-        res.status(200).json(doc);
-      }
+    if (err) {
+      handleError(res, err.message, "Failed to get pin");
+    } else {
+      res.status(200).json(doc);
+    }
   });
 });
 
@@ -266,14 +270,21 @@ app.post("/api/pins/:pinid/:accountid/review", function(req, res) {
 
 // -------------- ACCOUNT API BELOW -------------------------
 var ACCOUNTS_COLLECTION = "accounts";
+// GET Account
+app.get("/api/accounts/:id", function(req, res) {
+  db.collection(ACCOUNTS_COLLECTION).findOne({_id:new ObjectID(req.params.id)}, function(err, result) {
+    if (err) {
+      handleError(res, err.message, "Failed to get account.");
+    } else {
+      res.status(200).json(result);
+    }
+  });
+});
+
 // POST Account
 app.post("/api/accounts", function(req, res) {
   var newAccount = req.body;
   newAccount.createDate = new Date();
-
-  if (!(req.username || req.password)) {
-      handleError(res, "Invalid user input", "Must provide more user data.", 400);
-  }
 
   newAccount.numSeeds = 0;
   newAccount.numPins = 0;
@@ -288,7 +299,7 @@ app.post("/api/accounts", function(req, res) {
 });
 
 // PUT Account Password
-app.put("/api/accounts/:id/password", function(req, res) {
+app.put("/api/accounts/:id/:password", function(req, res) {
 
   if (req.body.password) {
       handleError(res, "Invalid user input", "Must provide new password in request body.", 400);
@@ -308,7 +319,7 @@ app.put("/api/accounts/:id/password", function(req, res) {
 
 // PUT Account Seed Amount
 // TODO this ain't terribly RESTful.
-app.put("/api/accounts/:id/seedChange/:amount", function(req, res) {
+app.put("/api/accounts/seeds/:id/:amount", function(req, res) {
   db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate( {_id: new ObjectID(req.params.id)} ,
     { $inc: { "numSeeds" : req.params.amount } } ,
     function(err, doc) {

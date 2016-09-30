@@ -1,5 +1,5 @@
 // Add a pin
-curl -H "Content-Type: application/json" -d '{"rating":"5", "description": "Baller","coordinate":{"latitude":"49","longitude":"50"}, "linkedAccount":"1"}' http://fridayideas-db.herokuapp.com/api/pins
+curl -H "Content-Type: application/json" -d '{"pinType":"0","pinName":"Hello world","rating":"5","description":"Baller","reviews":[{"linkedAccount": 123,"text":"This place is awesome"}],"coordinate":{"latitude":"49","longitude":"50"},"linkedAccount":"1"}' http://fridayideas.herokuapp.com/api/pins
 
 // Add a like
 curl -X PUT http://localhost:8080/api/pins/like/57e850e6d025440995ba81c1
@@ -10,7 +10,7 @@ curl -H "Content-Type: application/json" -d '{"linkedAccount": 123,"text":"This 
 curl -H "Content-Type: application/json" -d '{"linkedAccount": 125,"text":"This place is awesome"}' http://localhost:8080/api/pins/57e850e6d025440995ba81c1/review
 
 // Remove a review by a specific account id 
-curl -X POST http://fridayideas-db.herokuapp.com/api/pins/57e850e6d025440995ba81c1/125/review
+curl -X POST http://fridayideas.herokuapp.com/api/pins/57e850e6d025440995ba81c1/125/review
 
 // Remove a pin 
 curl -X DELETE http://localhost:8080/api/pins/57e850e6d025440995ba81c1
