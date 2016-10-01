@@ -284,8 +284,8 @@ app.post('/api/accounts', (req, res) => {
 });
 
 // PUT Account Password
-app.put('/api/accounts/:id/:password', (req, res) => {
-  if (req.body.password) {
+app.put('/api/accounts/:id/password', (req, res) => {
+  if (!req.body.password) {
     handleError(res, 'Invalid user input', 'Must provide new password in request body.', 400);
   }
 
