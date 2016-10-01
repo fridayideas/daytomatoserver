@@ -55,7 +55,7 @@ app.use(bodyParser.json());
 let db;
 
 // Connect to the database before starting the application server.
-const connString = 'mongodb://admin:seng480b@ds041556.mlab.com:41556/fridayideas';
+const connString = process.env.MONGO_URI;
 mongodb.MongoClient.connect(connString, (err, database) => {
   if (err) {
     console.log(err);
