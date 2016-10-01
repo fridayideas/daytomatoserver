@@ -95,7 +95,7 @@ function handleError(res, reason, message, code) {
  *   POST: creates a new pin
  */
 
-app.get('/api/pins', (req, res) => {
+app.route('/api/pins').get((req, res) => {
   const searchArea = (req.query.searchArea || '').split(',');
   const filters = searchArea.length === 4 ? {
     $and: [
@@ -114,9 +114,7 @@ app.get('/api/pins', (req, res) => {
         res.status(200).json(docs);
       }
     });
-});
-
-app.post('/api/pins', (req, res) => {
+}).post((req, res) => {
   const newPin = req.body;
   newPin.createDate = new Date();
 
@@ -141,7 +139,7 @@ app.post('/api/pins', (req, res) => {
  *    DELETE: deletes pin by id
  */
 
-app.get('/api/pins/:id', (req, res) => {
+app.route('/api/pins/:id').get((req, res) => {
   db.collection(PINS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, (err, doc) => {
     if (err) {
       handleError(res, err.message, 'Failed to get pin');
@@ -149,9 +147,7 @@ app.get('/api/pins/:id', (req, res) => {
       res.status(200).json(doc);
     }
   });
-});
-
-app.put('/api/pins/:id', (req, res) => {
+}).put((req, res) => {
   const updateDoc = req.body;
   delete updateDoc._id;
 
@@ -163,9 +159,7 @@ app.put('/api/pins/:id', (req, res) => {
         res.status(204).end();
       }
     });
-});
-
-app.delete('/api/pins/:id', (req, res) => {
+}).delete((req, res) => {
   db.collection(PINS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, (err, result) => {
     if (err) {
       handleError(res, err.message, 'Failed to delete pin');
