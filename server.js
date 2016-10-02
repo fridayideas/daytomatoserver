@@ -232,7 +232,7 @@ app.post('/api/pins/:id/review', (req, res) => {
 });
 
 // DELETE Review with Pin ID & Account IDs
-app.post('/api/pins/:pinid/:accountid/review', (req, res) => {
+app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
   console.log(`Trying to remove from pin ${req.params.pinid} review from account ${req.params.accountid}`);
 
   db.collection(PINS_COLLECTION).update({ _id: new ObjectID(req.params.pinid) },
