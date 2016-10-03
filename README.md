@@ -1,12 +1,12 @@
-# daytomatoserver 
+# daytomatoserver
 Mongo + Express + Node server
 
 [![Build Status](https://travis-ci.org/fridayideas/daytomatoserver.svg?branch=master)](https://travis-ci.org/fridayideas/daytomatoserver)
 
-    
+
 #REST API DOCUMENTATION
 ----
-##Pins 
+##Pins
   <_A pin is an attractionon a map. It has a location, as well as information about the attraction and user reviews_>
 
 ### Getting pins
@@ -17,14 +17,14 @@ Mongo + Express + Node server
 
 *  **URL Params**
 
-   <_No URL parameters_> 
+     Name         |   Description & Usage    |   Example
+----------------- | ----------------  | --------
+`searcharea`  | Optional. Comprised of a list of 4 comma-separated integers.The returned pins will be from within the search area.|`GET [HOST]/api/pins?searcharea=123,456,789,1011`
+                  | `searcharea=[LatitudeOfTopLeftCoordinate],[LongitudeOfTopLeftCoordinate],[LatitudeOfBottomRightCoordinate],[LongitudeOfBottomRightCoordinate]` |
 
 * **Data Params in Request Body**
 
-     Name         |   Description & Usage    |   Example
------------------ | ----------------  | --------
-`query.searcharea`  | Optional. Comprised of a list of 4 comma-separated integers.The returned pins will be from within the search area.|`query.searcharea=123,456,789,1011`
-                  | `query.searcharea=[LatitudeOfTopLeftCoordinate],[LongitudeOfTopLeftCoordinate],[LatitudeOfBottomRightCoordinate],[LongitudeOfBottomRightCoordinate]` |
+   <_No request parameters_>
 
 ### Creating a pin
 
@@ -34,7 +34,7 @@ Mongo + Express + Node server
 
 *  **URL Params**
 
-   <_No URL parameters_> 
+   <_No URL parameters_>
 
 * **Data Params on Request Body**
 
@@ -47,10 +47,10 @@ Mongo + Express + Node server
 `coordinate`      | Required. An array containing `latitude` and `longitude` | `{"coordinate":{"latitude":"49","longitude":"50"}}`
 `linkedAccount`   | Required. Account that has posted the pin | `{"linkedAccount":"123"}`
 
-* **Example Query** 
+* **Example Query**
 
   `'{"pinType":"0","pinName":"Hello world","rating":"5","description":"Very cool","coordinate":{"latitude":"49","longitude":"50"},"linkedAccount":"1"}'`
-  
+
 ### Getting a pin
 
 * **Request**
@@ -58,7 +58,7 @@ Mongo + Express + Node server
   `GET [host]/api/pins/:id`
 
 *  **URL Params**
- 
+
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the requested pin | `GET [HOST]/api/pins/123`
@@ -66,8 +66,8 @@ Mongo + Express + Node server
 * **Data Params on Request Body**
 
    <_No Data Parameters in Body_>
-   
-  
+
+
 ### Deleting a pin
 
 * **Request**
@@ -75,7 +75,7 @@ Mongo + Express + Node server
   `DELETE [host]/api/pins/:id`
 
 *  **URL Params**
- 
+
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the requested pin | `DELETE [HOST]/api/pins/123`
@@ -83,7 +83,7 @@ Mongo + Express + Node server
 * **Data Params on Request Body**
 
    <_No Data Parameters in Body_>
-   
+
 ### Changing a pin
 
 * **Request**
@@ -91,7 +91,7 @@ Mongo + Express + Node server
   `PUT [host]/api/pins/:id`
 
 *  **URL Params**
- 
+
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the requested pin | `PUT [HOST]/api/pins/123`
@@ -117,7 +117,7 @@ Mongo + Express + Node server
   `POST [host]/api/pins/:id/likes`
 
 *  **URL Params**
- 
+
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the requested pin | `POST [HOST]/api/pins/123/likes`
@@ -131,7 +131,7 @@ Mongo + Express + Node server
   `POST [host]/api/pins/:id/dislikes`
 
 *  **URL Params**
- 
+
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the requested pin | `POST [HOST]/api/pins/123/dislikes`
@@ -143,7 +143,7 @@ Mongo + Express + Node server
   `POST [host]/api/pins/:id/review`
 
 *  **URL Params**
- 
+
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the requested pin | `POST [host]/api/pins/123/review`
@@ -162,7 +162,7 @@ Mongo + Express + Node server
   `DELETE [host]/api/pins/:pinid/reviews/:accountid`
 
 *  **URL Params**
- 
+
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `pinid`            | Required. The ID of the requested pin from which the review will be deleted | `POST [host]/api/pins/123/reviews/456`
@@ -171,14 +171,14 @@ Mongo + Express + Node server
 * **Data Params on Request Body**
 
    <_No Data Parameters in Body_>
-   
-   
 
 
 
 
 
-##Accounts 
+
+
+##Accounts
   <_An account represents a user account. It contains username and a token from the Google OAuth Provider_>
 
 ### Getting account information
@@ -201,7 +201,7 @@ Mongo + Express + Node server
 
 *  **URL Params**
 
-   <_No URL parameters_> 
+   <_No URL parameters_>
 
 * **Data Params on Request Body**
 
@@ -209,7 +209,7 @@ Mongo + Express + Node server
 ----------------- | -----------------------  | --------
 `username`            | Required. The username of the user. This will be associated e-mail address from the Google OAuth Provider | `{"username":"jw@uvic.ca"}`
 `token`          | Required. The login token from the OAuth Provider |`{"token":"asd123sdt35"}`
-  
+
 ### Changing seed amount of an account
 
 * **Request**
@@ -217,7 +217,7 @@ Mongo + Express + Node server
   `PUT [host]/api/accounts/seeds/:id/:amount`
 
 *  **URL Params**
- 
+
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the user whose seed amount is being changed | `PUT [HOST]/api/accounts/seeds/123/1`
@@ -227,4 +227,4 @@ Mongo + Express + Node server
 * **Data Params on Request Body**
 
    <_No Data Parameters in Body_>
-  
+
