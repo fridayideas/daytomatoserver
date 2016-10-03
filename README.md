@@ -47,7 +47,7 @@ Mongo + Express + Node server
 `coordinate`      | Required. An array containing `latitude` and `longitude` | `{"coordinate":{"latitude":"49","longitude":"50"}}`
 `linkedAccount`   | Required. Account that has posted the pin | `{"linkedAccount":"123"}`
 
-* ** Example Query ** 
+* **Example Query** 
 
   `'{"pinType":"0","pinName":"Hello world","rating":"5","description":"Very cool","coordinate":{"latitude":"49","longitude":"50"},"linkedAccount":"1"}'`
   
@@ -179,7 +179,7 @@ Mongo + Express + Node server
 
 
 ##Accounts 
-  <_An account represents a user account. It contains username, password, or token if user logged in using Google_>
+  <_An account represents a user account. It contains username and a token from the Google OAuth Provider_>
 
 ### Getting account information
 
