@@ -267,7 +267,6 @@ app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
  */
  //Updates review and sets createDate to new date
 app.put('/api/pins/:pinid/reviews/:accountid', (req, res) => {
-
   db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid), reviews: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },
     { $set: { "reviews.$.text": req.body.text, "reviews.$.createDate": new Date() } },
     (err, doc) => {
@@ -377,16 +376,4 @@ app.delete('/api/accounts/:id', (req, res) => {
       res.status(204).end();
     }
   });
-});
-
-//For testing
-app.get('/api/accounts', (req, res) => {
-  db.collection(ACCOUNTS_COLLECTION).find(filters)
-    .toArray((err, docs) => {
-      if (err) {
-        handleError(res, err.message, 'Failed to get accounts.');
-      } else {
-        res.status(200).json(docs);
-      }
-    });
 });
