@@ -21,6 +21,8 @@ const ObjectID = mongodb.ObjectID;
  *     "longitude": <double>
  *   },
  *   "linkedAccount": <ObjectId>,
+ *   likedBy: [<ObjectId>],
+ *   dislikedBy: [<ObjectId>],
  *   "reviews": [
  *     {
  *       "linkedAccount": <ObjectId>,
@@ -182,36 +184,46 @@ app.route('/api/pins/:id').get((req, res) => {
 // Adds a like to the Pin ID
 
 app.post('/api/pins/:id/likes', (req, res) => {
-  const updateDoc = req.body;
-  delete updateDoc._id;
+  const accountId = req.body.accountId;
+  if (!accountId) {
+    handleError(res, 'User id not provided', 'Invalid user id', 400);
+    return;
+  }
 
   db.collection(PINS_COLLECTION)
-    .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, { $inc: { likes: 1 } },
-      (err, doc) => {
-        if (err) {
-          handleError(res, err.message, 'Failed to update pin');
-        } else {
-          res.status(204).end();
-        }
-      });
+    .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
+      $addToSet: { likedBy: accountId },
+      $pull: { dislikedBy: accountId },
+    }, (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to update pin');
+      } else {
+        res.status(204).end();
+      }
+    });
 });
 
 // POST "/pins/dislikes/:id/
 // Takes a like from the Pin ID
 
 app.post('/api/pins/:id/dislikes', (req, res) => {
-  const updateDoc = req.body;
-  delete updateDoc._id;
+  const accountId = req.body.accountId;
+  if (!accountId) {
+    handleError(res, 'User id not provided', 'Invalid user id', 400);
+    return;
+  }
 
   db.collection(PINS_COLLECTION)
-    .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, { $inc: { likes: -1 } },
-      (err, doc) => {
-        if (err) {
-          handleError(res, err.message, 'Failed to update pin');
-        } else {
-          res.status(204).end();
-        }
-      });
+    .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
+      $addToSet: { dislikedBy: accountId },
+      $pull: { likedBy: accountId },
+    }, (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to update pin');
+      } else {
+        res.status(204).end();
+      }
+    });
 });
 
 // POST Review with Pin ID
