@@ -230,7 +230,7 @@ app.post('/api/pins/:id/dislikes', (req, res) => {
 });
 
 // POST Review with Pin ID
-app.post('/api/pins/:id/review', (req, res) => {
+app.post('/api/pins/:id/reviews', (req, res) => {
   const updateDoc = req.body;
   delete updateDoc._id;
   updateDoc.createDate = new Date();
