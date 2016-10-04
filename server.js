@@ -345,7 +345,7 @@ app.put('/api/accounts/seeds/:id/:amount', (req, res) => {
 });
 
 app.get('/api/accounts/', (req, res) => {
-  db.collection(ACCOUNTS_COLLECTION).findOne({ token: {$eq: parseInt(req.query.token)} },
+  db.collection(ACCOUNTS_COLLECTION).findOne({ token: { $eq: parseInt(req.query.token, 10) } },
     (err, doc) => {
       if (err) {
         handleError(res, err.message, 'Failed to authenticate user');
@@ -353,89 +353,74 @@ app.get('/api/accounts/', (req, res) => {
       } else {
         res.status(200).json(doc);
       }
-  });
+    });
 });
 
 
 // get number of seeds from the account
-app.get("/api/accounts/seeds/:id", function(req, res) {
-
-
-    db.collection(ACCOUNTS_COLLECTION).findOne( {_id: new ObjectID(req.params.id) }, function(err, result) {
-         if (err) {
-             handleError(res, err.message, "Failed to get account");
-          
-         } else {
-             
-            var newAccount = result;
-     //    console.log(newAccount.numSeeds);
-            res.status(200).json(newAccount.numSeeds);
-        }            
+app.get('/api/accounts/seeds/:id', (req, res) => {
+  db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
+    (err, result) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to get account');
+      } else {
+        const newAccount = result;
+        //    console.log(newAccount.numSeeds);
+        res.status(200).json(newAccount.numSeeds);
+      }
     });
-    
-    //});
-        
 });
 
 
 // get number of pins from the account
-app.get("/api/accounts/pins/:id", function(req, res) {
-
-
-    db.collection(ACCOUNTS_COLLECTION).findOne( {_id: new ObjectID(req.params.id) }, function(err, result) {
-         if (err) {
-             handleError(res, err.message, "Failed to get account");
-          
-         } else {
-             
-            var newAccount = result;
-         console.log(newAccount.numPins);
-            res.status(200).json(newAccount.numPins);
-        }            
+app.get('/api/accounts/pins/:id', (req, res) => {
+  db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
+    (err, result) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to get account');
+      } else {
+        const newAccount = result;
+        console.log(newAccount.numPins);
+        res.status(200).json(newAccount.numPins);
+      }
     });
-    
-    //});
-        
 });
+
 // update the number of pins from the account
-app.put("/api/accounts/pins/:id", function(req, res) {
-    var updatePin = req.body;
-    delete updatePin._id;
-     
-  db.collection(PINS_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updatePin, function(err, result) {
-    if (err) {
-      handleError(res, err.message, "Failed to update the number of pins");
-    } else {
-      //  console.log(updatePin);
-      res.status(204).end();
-    }
-  });
-    
+app.put('/api/accounts/pins/:id', (req, res) => {
+  const updatePin = req.body;
+  delete updatePin._id;
+
+  db.collection(PINS_COLLECTION).updateOne({ _id: new ObjectID(req.params.id) },
+    updatePin, (err, result) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to update the number of pins');
+      } else {
+        //  console.log(updatePin);
+        res.status(204).end();
+      }
+    });
 });
 
 // update the number of seeds from the account
-app.put("/api/accounts/seeds/:id", function(req, res) {
-     var updateSeed = req.body;
-        delete updateSeed._id;
-     
+app.put('/api/accounts/seeds/:id', (req, res) => {
+  const updateSeed = req.body;
+  delete updateSeed._id;
 
-    db.collection(ACCOUNTS_COLLECTION).findOne( {_id: new ObjectID(req.params.id) }, function(err, result) {
-         if (err) {
-             handleError(res, err.message, "Failed to update the number of seeds");
-          
-         } else {
-             
-            
-         //console.log(updateSeed);
-            res.status(204).end();
-        }            
+  db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
+    (err, result) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to update the number of seeds');
+      } else {
+        // console.log(updateSeed);
+        res.status(204).end();
+      }
     });
-    
-    });
+});
 
 app.get('/api/accounts/token/:token', (req, res) => {
-  console.log(req.params.token)
-  db.collection(ACCOUNTS_COLLECTION).findOne({ token: parseInt(req.params.token) },
+  console.log(req.params.token);
+  db.collection(ACCOUNTS_COLLECTION).findOne({ token: parseInt(req.params.token, 10) },
     (err, doc) => {
       if (err) {
         handleError(res, err.message, 'Failed to authenticate user');
@@ -443,15 +428,16 @@ app.get('/api/accounts/token/:token', (req, res) => {
       } else {
         res.status(200).json(doc);
       }
-  });
+    });
 });
 
 app.delete('/api/accounts/:id', (req, res) => {
-  db.collection(ACCOUNTS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, (err, result) => {
-    if (err) {
-      handleError(res, err.message, 'Failed to delete account');
-    } else {
-      res.status(204).end();
-    }
-  });
+  db.collection(ACCOUNTS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) },
+    (err, result) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to delete account');
+      } else {
+        res.status(204).end();
+      }
+    });
 });
