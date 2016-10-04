@@ -40,6 +40,7 @@ const ObjectID = mongodb.ObjectID;
  * //ACCOUNTS
  * {
  *   "_id": <ObjectId>,
+ *   "token": <string>,
  *   "username": <string>,
  *   "seeds": <double>,
  *   "pins": <int>
@@ -228,9 +229,11 @@ app.post('/api/pins/:id/dislikes', (req, res) => {
 
 // POST Review with Pin ID
 app.post('/api/pins/:id/review', (req, res) => {
+  console.log(req.body)
   const updateDoc = req.body;
   delete updateDoc._id;
   updateDoc.createDate = new Date();
+  console.log(updateDoc)
 
   db.collection(PINS_COLLECTION)
     .updateOne({ _id: new ObjectID(req.params.id) }, { $push: { reviews: updateDoc } },
@@ -257,6 +260,25 @@ app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
       }
     });
 });
+
+/**
+ * body form:
+ * { "text": "New review" }
+ */
+ //Updates review and sets createDate to new date
+app.put('/api/pins/:pinid/reviews/:accountid', (req, res) => {
+  db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid), reviews: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },
+    { $set: { "reviews.$.text": req.body.text, "reviews.$.createDate": new Date() } },
+    (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to update review from pin');
+      } else {
+        console.log(doc)
+        res.status(204).end();
+      }
+    });
+});
+
 
 // -------------- ACCOUNT API BELOW -------------------------
 const ACCOUNTS_COLLECTION = 'accounts';
@@ -321,3 +343,37 @@ app.put('/api/accounts/seeds/:id/:amount', (req, res) => {
     });
 });
 
+app.get('/api/accounts/', (req, res) => {
+  db.collection(ACCOUNTS_COLLECTION).findOne({ token: {$eq: parseInt(req.query.token)} },
+    (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to authenticate user');
+        res.status(401).end();
+      } else {
+        res.status(200).json(doc);
+      }
+  });
+});
+
+app.get('/api/accounts/token/:token', (req, res) => {
+  console.log(req.params.token)
+  db.collection(ACCOUNTS_COLLECTION).findOne({ token: parseInt(req.params.token) },
+    (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to authenticate user');
+        res.status(401).end();
+      } else {
+        res.status(200).json(doc);
+      }
+  });
+});
+
+app.delete('/api/accounts/:id', (req, res) => {
+  db.collection(ACCOUNTS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, (err, result) => {
+    if (err) {
+      handleError(res, err.message, 'Failed to delete account');
+    } else {
+      res.status(204).end();
+    }
+  });
+});
