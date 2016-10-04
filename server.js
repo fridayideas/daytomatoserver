@@ -62,7 +62,9 @@ app.use(bodyParser.json());
 var db;
 
 // Connect to the database before starting the application server.
-mongodb.MongoClient.connect("mongodb://admin:seng480b@ds041556.mlab.com:41556/fridayideas", function (err, database) {
+//mongodb.MongoClient.connect("mongodb://admin:seng480b@ds041556.mlab.com:41556/fridayideas",
+mongodb.MongoClient.connect("mongodb://localhost:27017/daytomato",
+function (err, database) {
   if (err) {
     console.log(err);
     process.exit(1);
@@ -79,6 +81,15 @@ mongodb.MongoClient.connect("mongodb://admin:seng480b@ds041556.mlab.com:41556/fr
   });
 });
 
+// Home page
+ //app.get("/").function (req, res) {
+   //  res.sendFile(path + "index.html");
+ //}
+
+// git add <FILES>
+// git commit -m "COMMIT MESSAGE"
+// git push origin home_page
+// if above doesnt work, git pull origin master
 // -------------- PINS API BELOW -------------------------------
 
 var PINS_COLLECTION = "pins";
@@ -101,6 +112,7 @@ function handleError(res, reason, message, code) {
  */
 
 app.get("/api/pins", function(req, res) {
+ 
   var searchArea = (req.query.searchArea || '').split(',');
   var filters = searchArea.length == 4 ? {
     $and: [
@@ -268,15 +280,18 @@ app.post("/api/pins/:pinid/:accountid/review", function(req, res) {
   });
 });
 
+
 // -------------- ACCOUNT API BELOW -------------------------
 var ACCOUNTS_COLLECTION = "accounts";
 // GET Account
 app.get("/api/accounts/:id", function(req, res) {
+
   db.collection(ACCOUNTS_COLLECTION).findOne({_id:new ObjectID(req.params.id)}, function(err, result) {
     if (err) {
       handleError(res, err.message, "Failed to get account.");
     } else {
-      res.status(200).json(result);
+     
+        res.status(200).json(result);
     }
   });
 });
@@ -331,3 +346,80 @@ app.put("/api/accounts/seeds/:id/:amount", function(req, res) {
   });
 });
 
+// get number of seeds from the account
+app.get("/api/accounts/seeds/:id", function(req, res) {
+
+
+    db.collection(ACCOUNTS_COLLECTION).findOne( {_id: new ObjectID(req.params.id) }, function(err, result) {
+         if (err) {
+             handleError(res, err.message, "Failed to get account");
+          
+         } else {
+             
+            var newAccount = result;
+     //    console.log(newAccount.numSeeds);
+            res.status(200).json(newAccount.numSeeds);
+        }            
+    });
+    
+    //});
+        
+});
+
+
+// get number of pins from the account
+app.get("/api/accounts/pins/:id", function(req, res) {
+
+
+    db.collection(ACCOUNTS_COLLECTION).findOne( {_id: new ObjectID(req.params.id) }, function(err, result) {
+         if (err) {
+             handleError(res, err.message, "Failed to get account");
+          
+         } else {
+             
+            var newAccount = result;
+         console.log(newAccount.numPins);
+            res.status(200).json(newAccount.numPins);
+        }            
+    });
+    
+    //});
+        
+});
+// update the number of pins from the account
+app.put("/api/accounts/pins/:id", function(req, res) {
+    var updatePin = req.body;
+    delete updatePin._id;
+     
+  db.collection(PINS_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updatePin, function(err, result) {
+    if (err) {
+      handleError(res, err.message, "Failed to update the number of pins");
+    } else {
+      //  console.log(updatePin);
+      res.status(204).end();
+    }
+  });
+    
+});
+
+// update the number of seeds from the account
+app.put("/api/accounts/seeds/:id", function(req, res) {
+     var updateSeed = req.body;
+        delete updateSeed._id;
+     
+
+    db.collection(ACCOUNTS_COLLECTION).findOne( {_id: new ObjectID(req.params.id) }, function(err, result) {
+         if (err) {
+             handleError(res, err.message, "Failed to update the number of seeds");
+          
+         } else {
+             
+            
+         //console.log(updateSeed);
+            res.status(204).end();
+        }            
+    });
+    
+    //});
+        
+});
