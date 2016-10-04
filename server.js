@@ -267,7 +267,7 @@ app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
  * { "text": "New review" }
  */
  //Updates review and sets createDate to new date
-app.put('/api/pins/:pinid/:accountid/update/review', (req, res) => {
+app.put('/api/pins/:pinid/review/:accountid', (req, res) => {
 
   db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid), reviews: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },
     { $set: { "reviews.$.text": req.body.text, "reviews.$.createDate": new Date() } },
