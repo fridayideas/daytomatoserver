@@ -167,7 +167,6 @@ app.route('/api/pins/:id').get((req, res) => {
     if (err) {
       handleError(res, err.message, 'Failed to delete pin');
     } else {
-      console.log(result)
       res.status(204).end();
     }
   });
@@ -267,7 +266,7 @@ app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
  * { "text": "New review" }
  */
  //Updates review and sets createDate to new date
-app.put('/api/pins/:pinid/review/:accountid', (req, res) => {
+app.put('/api/pins/:pinid/reviews/:accountid', (req, res) => {
 
   db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid), reviews: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },
     { $set: { "reviews.$.text": req.body.text, "reviews.$.createDate": new Date() } },
@@ -357,8 +356,20 @@ app.get('/api/accounts/', (req, res) => {
   });
 });
 
-app.delete('/api/accounts/:id', (req, res) => {
+app.get('/api/accounts/token/:token', (req, res) => {
+  console.log(req.params.token)
+  db.collection(ACCOUNTS_COLLECTION).findOne({ token: parseInt(req.params.token) },
+    (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to authenticate user');
+        res.status(401).end();
+      } else {
+        res.status(200).json(doc);
+      }
+  });
+});
 
+app.delete('/api/accounts/:id', (req, res) => {
   db.collection(ACCOUNTS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, (err, result) => {
     if (err) {
       handleError(res, err.message, 'Failed to delete account');
@@ -366,4 +377,16 @@ app.delete('/api/accounts/:id', (req, res) => {
       res.status(204).end();
     }
   });
+});
+
+//For testing
+app.get('/api/accounts', (req, res) => {
+  db.collection(ACCOUNTS_COLLECTION).find(filters)
+    .toArray((err, docs) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to get accounts.');
+      } else {
+        res.status(200).json(docs);
+      }
+    });
 });
