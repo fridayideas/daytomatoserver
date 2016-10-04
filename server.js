@@ -40,6 +40,7 @@ const ObjectID = mongodb.ObjectID;
  * //ACCOUNTS
  * {
  *   "_id": <ObjectId>,
+ *   "token": <string>,
  *   "username": <string>,
  *   "seeds": <double>,
  *   "pins": <int>
@@ -166,6 +167,7 @@ app.route('/api/pins/:id').get((req, res) => {
     if (err) {
       handleError(res, err.message, 'Failed to delete pin');
     } else {
+      console.log(result)
       res.status(204).end();
     }
   });
@@ -258,6 +260,23 @@ app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
     });
 });
 
+/**
+ * body:
+ * {"text": "New review"}
+ */
+app.put('/api/pins/:pinid/:accountid/update/review', (req, res) => {
+  console.log(req.body)
+  db.collection(PINS_COLLECTION).update({ _id: new ObjectID(req.params.pinid) },
+    { $set: { reviews: req.body } },    //TODO specify which linked account to update review for
+    (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to update review from pin');
+      } else {
+        res.status(204).end();
+      }
+    });
+});
+
 // -------------- ACCOUNT API BELOW -------------------------
 const ACCOUNTS_COLLECTION = 'accounts';
 // GET Account
@@ -321,3 +340,25 @@ app.put('/api/accounts/seeds/:id/:amount', (req, res) => {
     });
 });
 
+app.get('/api/accounts/', (req, res) => {
+  db.collection(ACCOUNTS_COLLECTION).findOne({ token: {$eq: parseInt(req.query.token)} },
+    (err, doc) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to authenticate user');
+        res.status(401).end();
+      } else {
+        res.status(200).json(doc);
+      }
+  });
+});
+
+app.delete('/api/accounts/:id', (req, res) => {
+
+  db.collection(ACCOUNTS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, (err, result) => {
+    if (err) {
+      handleError(res, err.message, 'Failed to delete account');
+    } else {
+      res.status(204).end();
+    }
+  });
+});
