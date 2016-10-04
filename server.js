@@ -122,7 +122,7 @@ app.route('/api/pins').get((req, res) => {
   newPin.createDate = new Date();
 
   newPin.likes = 0;
-  //newPin.reviews = [];
+  newPin.reviews = [];
   if (!req.body.duration) {
     newPin.duration = -1; // Default duration, means never ending event (such as a park)
   }
@@ -264,12 +264,13 @@ app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
 
 /**
  * body form:
- * {"linkedAccount": 10248, "text": "New review"}
+ * { "text": "New review" }
  */
+ //Updates review and sets createDate to new date
 app.put('/api/pins/:pinid/:accountid/update/review', (req, res) => {
-  console.log(req.body)
+
   db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid), reviews: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },
-    { $set: { "reviews.$": req.body } },    //TODO test if it picks the right linkedAccount when multiple reviews in array
+    { $set: { "reviews.$.text": req.body.text, "reviews.$.createDate": new Date() } },
     (err, doc) => {
       if (err) {
         handleError(res, err.message, 'Failed to update review from pin');
@@ -280,10 +281,6 @@ app.put('/api/pins/:pinid/:accountid/update/review', (req, res) => {
     });
 });
 
-/*
-db.collection(PINS_COLLECTION).update({ _id: new ObjectID(req.params.pinid), "reviews.linkedAccount": 123 } },
-  { $set: { reviews: { text: req.body } } },    //TODO specify which linked account to update review for
-*/
 
 // -------------- ACCOUNT API BELOW -------------------------
 const ACCOUNTS_COLLECTION = 'accounts';
