@@ -5,11 +5,24 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"No tests yet!\"",
-    "start": "node server.js"
+    "start": "node server.js",
+    "lint": "node ./node_modules/eslint/bin/eslint.js ."
   },
+  "engines": {
+    "node": "6.x"
+  },
+  "pre-commit": ["lint"],
   "dependencies": {
     "body-parser": "^1.13.3",
     "express": "^4.13.3",
     "mongodb": "^2.1.6"
+  },
+  "devDependencies": {
+    "eslint": "^3.7.0",
+    "eslint-config-airbnb": "^12.0.0",
+    "eslint-plugin-import": "^2.0.0",
+    "eslint-plugin-jsx-a11y": "^2.2.2",
+    "eslint-plugin-react": "^6.3.0",
+    "pre-commit": "^1.1.3"
   }
 }
