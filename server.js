@@ -184,21 +184,44 @@ app.route('/api/pins/:id').get((req, res) => {
 // POST "/pins/like/:id/
 // Adds a like to the Pin ID
 
+//when a user likes a pin, the user's feed who created that pin is updated
 app.post('/api/pins/:id/likes', (req, res) => {
   const accountId = req.body.accountId;
+  var usernm = "";
   if (!accountId) {
     handleError(res, 'User id not provided', 'Invalid user id', 400);
     return;
   }
+  console.log("AccountId of person liking: " + accountId)
+  db.collection(ACCOUNTS_COLLECTION).findOne( { _id: new ObjectID(accountId) },
+    (err, doc) => {
+      if(err){
+        handleError(res, err.message, 'Failed to update pin');
+      } else{
+        //doc.value.linkedAccount;
+        console.log("Username of person liking: " + doc.username)
+        usernm = doc.username;
+      }
 
+  } );
   db.collection(PINS_COLLECTION)
     .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
       $addToSet: { likedBy: accountId },
       $pull: { dislikedBy: accountId },
+      $inc: { likes: 1 }
     }, (err, doc) => {
       if (err) {
         handleError(res, err.message, 'Failed to update pin');
       } else {
+        console.log("AccountId of persons pin that got liked: " + doc.value.linkedAccount)
+        db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(doc.value.linkedAccount) },
+          { $push: { feed: { $each: [ usernm + " liked your pin " + doc.value.pinName ], $slice: 5, $position: 0 } } }, (err, doc) => {
+              handleError(res, err.message, 'Failed to update pin');
+            } else{
+              console.log("success")
+              res.status(204).end();
+            }
+        });
         res.status(204).end();
       }
     });
@@ -218,6 +241,7 @@ app.post('/api/pins/:id/dislikes', (req, res) => {
     .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
       $addToSet: { dislikedBy: accountId },
       $pull: { likedBy: accountId },
+      $inc: { likes: -1 }
     }, (err, doc) => {
       if (err) {
         handleError(res, err.message, 'Failed to update pin');
@@ -273,7 +297,6 @@ app.put('/api/pins/:pinid/reviews/:accountid', (req, res) => {
       if (err) {
         handleError(res, err.message, 'Failed to update review from pin');
       } else {
-        console.log(doc)
         res.status(204).end();
       }
     });
@@ -343,7 +366,7 @@ app.put('/api/accounts/seeds/:id/:amount', (req, res) => {
     });
 });
 
-app.get('/api/accounts/', (req, res) => {
+app.get('/api/accounts', (req, res) => {
   db.collection(ACCOUNTS_COLLECTION).findOne({ token: {$eq: parseInt(req.query.token)} },
     (err, doc) => {
       if (err) {
@@ -356,7 +379,6 @@ app.get('/api/accounts/', (req, res) => {
 });
 
 app.get('/api/accounts/token/:token', (req, res) => {
-  console.log(req.params.token)
   db.collection(ACCOUNTS_COLLECTION).findOne({ token: parseInt(req.params.token) },
     (err, doc) => {
       if (err) {
@@ -376,4 +398,17 @@ app.delete('/api/accounts/:id', (req, res) => {
       res.status(204).end();
     }
   });
+});
+
+//get all accounts
+//for testing
+app.get('/api/accounts/all/t', (req, res) => {
+  db.collection(ACCOUNTS_COLLECTION).find()
+    .toArray((err, docs) => {
+      if (err) {
+        handleError(res, err.message, 'Failed to get pins.');
+      } else {
+        res.status(200).json(docs);
+      }
+    });
 });
