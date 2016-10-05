@@ -17,6 +17,8 @@
 
 import rauth
 import time
+import requests
+import json
 
 def main():
 	with open("json_data_restaurants.txt", "a") as myfile:
@@ -61,8 +63,24 @@ def main():
 					longi = lat[1].split("}, u'state_code")
 					print lat[0], longi[0]
 
-				pin = """{{"rating": {one}, "pinType": 0, "name": {two}, "description": {three}, "likes" : 0, "coordinate": {{ "latitude": {four}, "longitude": {five}}}, "linkedAccount": YELP, "reviews": [{{"linkedAccount":null,"text":null,"createDate":null}}]}},\n""".format(one=rating[0], two=name[0], three=category[1], four=lat[0], five=longi[0])
-				myfile.write(pin)
+				pin = {'rating': rating[0], 
+					'pinType': 0, 
+					'name': name[0], 
+					'description': category[1], 
+					'likes' : 0, 
+					'coordinate': { 
+						'latitude': lat[0], 
+						'longitude': longi[0]
+						}, 
+					'linkedAccount': 'YELP'
+					}
+				# add in post request here to post to server
+				# print pin
+				# url = 'http://localhost:8080/api/pins'
+				# r = requests.post(url, json=pin)
+				# print r
+				myfile.write(str(pin))
+				myfile.write("\n")
 				
 		f.close()
 		myfile.write("]")
