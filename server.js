@@ -330,20 +330,6 @@ app.put('/api/accounts/:id/password', (req, res) => {
     });
 });
 
-// PUT Account Seed Amount
-// TODO this ain't terribly RESTful.
-app.put('/api/accounts/seeds/:id/:amount', (req, res) => {
-  db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.id) },
-    { $inc: { numSeeds: req.params.amount } },
-    (err, doc) => {
-      if (err) {
-        handleError(res, err.message, 'Failed to update seed amount for account');
-      } else {
-        res.status(204).end();
-      }
-    });
-});
-
 app.get('/api/accounts/', (req, res) => {
   db.collection(ACCOUNTS_COLLECTION).find()
     .toArray((err, docs) => {
