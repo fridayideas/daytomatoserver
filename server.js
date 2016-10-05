@@ -345,17 +345,15 @@ app.put('/api/accounts/seeds/:id/:amount', (req, res) => {
 });
 
 app.get('/api/accounts/', (req, res) => {
-  db.collection(ACCOUNTS_COLLECTION).findOne({ token: { $eq: parseInt(req.query.token, 10) } },
-    (err, doc) => {
+  db.collection(ACCOUNTS_COLLECTION).find()
+    .toArray((err, docs) => {
       if (err) {
-        handleError(res, err.message, 'Failed to authenticate user');
-        res.status(401).end();
+        handleError(res, err.message, 'Failed to get accounts');
       } else {
-        res.status(200).json(doc);
+        res.status(200).json(docs);
       }
     });
 });
-
 
 // get number of seeds from the account
 app.get('/api/accounts/:id/seeds', (req, res) => {
