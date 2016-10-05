@@ -358,7 +358,7 @@ app.get('/api/accounts/', (req, res) => {
 
 
 // get number of seeds from the account
-app.get('/api/accounts/seeds/:id', (req, res) => {
+app.get('/api/accounts/:id/seeds', (req, res) => {
   db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
     (err, result) => {
       if (err) {
@@ -373,7 +373,7 @@ app.get('/api/accounts/seeds/:id', (req, res) => {
 
 
 // get number of pins from the account
-app.get('/api/accounts/pins/:id', (req, res) => {
+app.get('/api/accounts/:id/pins', (req, res) => {
   db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
     (err, result) => {
       if (err) {
@@ -387,7 +387,7 @@ app.get('/api/accounts/pins/:id', (req, res) => {
 });
 
 // update the number of pins from the account
-app.put('/api/accounts/pins/:id', (req, res) => {
+app.put('/api/accounts/:id/pins', (req, res) => {
   const updatePin = req.body;
   delete updatePin._id;
 
@@ -403,7 +403,7 @@ app.put('/api/accounts/pins/:id', (req, res) => {
 });
 
 // update the number of seeds from the account
-app.put('/api/accounts/seeds/:id', (req, res) => {
+app.put('/api/accounts/:id/seeds', (req, res) => {
   const updateSeed = req.body;
   delete updateSeed._id;
 
