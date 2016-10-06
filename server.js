@@ -197,6 +197,7 @@ app.post('/api/pins/:id/likes', (req, res) => {
     .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
       $addToSet: { likedBy: accountId },
       $pull: { dislikedBy: accountId },
+      $inc: { likes: 1 },
     }, (err, doc) => {
       if (err) {
         handleError(res, err.message, 'Failed to update pin');
@@ -220,6 +221,7 @@ app.post('/api/pins/:id/dislikes', (req, res) => {
     .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
       $addToSet: { dislikedBy: accountId },
       $pull: { likedBy: accountId },
+      $inc: { likes: -1 },
     }, (err, doc) => {
       if (err) {
         handleError(res, err.message, 'Failed to update pin');
