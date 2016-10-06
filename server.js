@@ -104,10 +104,10 @@ app.route('/api/pins').get((req, res) => {
   const filters = searchArea.length === 4 ? {
 
     $and: [
-      { 'coordinate.latitude': { $lte: searchArea[0] } },
-      { 'coordinate.latitude': { $gte: searchArea[2] } },
-      { 'coordinate.longitude': { $lte: searchArea[1] } },
-      { 'coordinate.longitude': { $gte: searchArea[3] } },
+      { 'coordinate.latitude': { $lte: parseFloat(searchArea[0]) } },
+      { 'coordinate.longitude': { $lte: parseFloat(searchArea[1]) } },
+      { 'coordinate.latitude': { $gte: parseFloat(searchArea[2]) } },
+      { 'coordinate.longitude': { $gte: parseFloat(searchArea[3]) } },
     ],
   } : {};
 
