@@ -106,18 +106,8 @@ module.exports = (db) => {
       });
   });
 
-  /**
-   * "/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong"
-   *   GET: Find pins inside specified coordinates.
-   *     topLeftLat : latitude of the top left of the bounding box
-   *     topLeftLong : longitude of the top left of the bounding box
-   *     bottomRightLat : latitude of the bottom right of the bounding box
-   *     bottomRightLong : longitude of the bottom right of the bounding box
-   */
-
-// POST "/pins/like/:id/
-// Adds a like to the Pin ID
-
+  // POST "/pins/like/:id/
+  // Adds a like to the Pin ID
   router.post('/:id/likes', (req, res) => {
     const accountId = req.body.accountId;
     let usernmlikedby = '';
@@ -165,9 +155,8 @@ module.exports = (db) => {
       });
   });
 
-// POST "/pins/dislikes/:id/
-// Takes a like from the Pin ID
-
+  // POST "/pins/dislikes/:id/
+  // Takes a like from the Pin ID
   router.post('/:id/dislikes', (req, res) => {
     const accountId = req.body.accountId;
     let usernmdislikedby = '';
@@ -215,7 +204,7 @@ module.exports = (db) => {
       });
   });
 
-// POST Review with Pin ID
+  // POST Review with Pin ID
   router.post('/:id/reviews', (req, res) => {
     const updateDoc = req.body;
     const accountId = updateDoc.linkedAccount;
@@ -259,8 +248,8 @@ module.exports = (db) => {
         });
   });
 
-// DELETE Review with Pin ID & Account IDs
-  router.delete('/:pinid/reviews/:accountid', (req, res) => {
+  router.route('/:pinid/reviews/:accountid').delete((req, res) => {
+    // DELETE Review with Pin ID & Account IDs
     console.log(`Trying to remove from pin ${req.params.pinid} review from account ${req.params.accountid}`);
 
     db.collection(PINS_COLLECTION).update({ _id: new ObjectID(req.params.pinid) },
@@ -272,10 +261,8 @@ module.exports = (db) => {
           res.status(204).end();
         }
       });
-  });
-
-  // Updates review and sets createDate to new date
-  router.put('/:pinid/reviews/:accountid', (req, res) => {
+  }).put('/:pinid/reviews/:accountid', (req, res) => {
+    // Updates review and sets createDate to new date
     db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid),
         reviews: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },
       { $set: { 'reviews.$.text': req.body.text, 'reviews.$.createDate': new Date() } },
@@ -290,4 +277,3 @@ module.exports = (db) => {
 
   return router;
 };
-
