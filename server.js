@@ -13,7 +13,9 @@ const ObjectID = mongodb.ObjectID;
  *   "rating": <string>,
  *   "pinType": <int>,
  *   "name": <string>,
+ *   "cost": <int>,
  *   "description": <string>,
+ *   "image": <string>,
  *   "likes" : <int>,
  *   "duration": <long>,
  *   "coordinate": {
