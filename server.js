@@ -123,8 +123,8 @@ app.route('/api/pins').get((req, res) => {
   const newPin = req.body;
   newPin.createDate = new Date();
 
-  newPin.likes = 0;
-  newPin.reviews = [];
+  newPin.likes = req.body.likes || 0;
+  newPin.reviews = req.body.reviews || [];
   if (!req.body.duration) {
     newPin.duration = -1; // Default duration, means never ending event (such as a park)
   }
