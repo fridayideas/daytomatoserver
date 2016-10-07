@@ -98,11 +98,12 @@ function handleError(res, reason, message, code) {
  *   POST: creates a new pin
  */
 
-
+const sortKeys = ['likes', 'createDate'];
 app.route('/api/pins').get((req, res) => {
   const searchArea = (req.query.searchArea || '').split(',');
+  const sortKey = req.query.sort || '';
+  const limit = ~~req.query.limit;
   const filters = searchArea.length === 4 ? {
-
     $and: [
       { 'coordinate.latitude': { $lte: parseFloat(searchArea[0]) } },
       { 'coordinate.longitude': { $lte: parseFloat(searchArea[1]) } },
@@ -110,8 +111,14 @@ app.route('/api/pins').get((req, res) => {
       { 'coordinate.longitude': { $gte: parseFloat(searchArea[3]) } },
     ],
   } : {};
+  const sort = sortKeys.includes(sortKey) ? {
+    [sortKey]: 1,
+  } : {};
 
-  db.collection(PINS_COLLECTION).find(filters)
+  db.collection(PINS_COLLECTION)
+    .find(filters)
+    .sort(sort)
+    .limit(limit)
     .toArray((err, docs) => {
       if (err) {
         handleError(res, err.message, 'Failed to get pins.');
@@ -236,7 +243,6 @@ app.post('/api/pins/:id/reviews', (req, res) => {
   const updateDoc = req.body;
   delete updateDoc._id;
   updateDoc.createDate = new Date();
-
 
   db.collection(PINS_COLLECTION)
     .updateOne({ _id: new ObjectID(req.params.id) }, { $push: { reviews: updateDoc } },
