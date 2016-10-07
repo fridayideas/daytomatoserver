@@ -19,8 +19,17 @@ module.exports = (db) => {
       });
   });
 
-  // POST Account
-  router.post('/', (req, res) => {
+  router.route('/').get((req, res) => {
+    db.collection(ACCOUNTS_COLLECTION).find()
+      .toArray((err, docs) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to get accounts');
+        } else {
+          res.status(200).json(docs);
+        }
+      });
+  }).post('/', (req, res) => {
+    // POST Account
     const newAccount = req.body;
     newAccount.createDate = new Date();
 
@@ -54,17 +63,6 @@ module.exports = (db) => {
       });
   });
 
-  router.get('/', (req, res) => {
-    db.collection(ACCOUNTS_COLLECTION).find()
-      .toArray((err, docs) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to get accounts');
-        } else {
-          res.status(200).json(docs);
-        }
-      });
-  });
-
   // get number of seeds from the account
   router.get('/:id/seeds', (req, res) => {
     db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
@@ -78,7 +76,6 @@ module.exports = (db) => {
         }
       });
   });
-
 
   // get number of pins from the account
   router.get('/:id/pins', (req, res) => {
