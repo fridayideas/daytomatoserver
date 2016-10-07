@@ -276,12 +276,10 @@ app.post('/api/pins/:id/dislikes', (req, res) => {
 // POST Review with Pin ID
 app.post('/api/pins/:id/reviews', (req, res) => {
   const updateDoc = req.body;
-  console.log(updateDoc.linkedAccount)
   const accountId = updateDoc.linkedAccount;
   var usernmreviewedby = "";
   delete updateDoc._id;
   updateDoc.createDate = new Date();
-  console.log(123)
   db.collection(ACCOUNTS_COLLECTION).findOne( { _id: new ObjectID(accountId) },
     (err, doc) => {
       if(err){
@@ -291,13 +289,11 @@ app.post('/api/pins/:id/reviews', (req, res) => {
       }
   });
   db.collection(PINS_COLLECTION)
-    .updateOne({ _id: new ObjectID(req.params.id) }, { $push: { reviews: updateDoc } },
+    .findOneAndUpdateOne({ _id: new ObjectID(req.params.id) }, { $push: { reviews: updateDoc } },
       (err, doc) => {
         if (err) {
           handleError(res, err.message, 'Failed to add review to pin');
         } else {
-          console.log(doc)
-
           db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(doc.value.linkedAccount) },
             { $push: { feed: { $each: [ usernmreviewedby + " reviewed your pin " + doc.value.pinName ],
             $slice: 5,
@@ -309,7 +305,6 @@ app.post('/api/pins/:id/reviews', (req, res) => {
                 res.status(204).end();
               }
           });
-
           res.status(204).end();
         }
       });
@@ -330,10 +325,6 @@ app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
     });
 });
 
-/**
- * body form:
- * { "text": "New review" }
- */
  // Updates review and sets createDate to new date
 app.put('/api/pins/:pinid/reviews/:accountid', (req, res) => {
   db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid),
