@@ -132,6 +132,8 @@ app.route('/api/pins').get((req, res) => {
 }).post((req, res) => {
   const newPin = req.body;
   newPin.createDate = new Date();
+  newPin.cost = req.body.cost || 0.0;
+  newPin.image = req.body.image || "";
 
   newPin.likes = req.body.likes || 0;
   newPin.reviews = req.body.reviews || [];
