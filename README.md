@@ -42,14 +42,16 @@ Mongo + Express + Node server
 ----------------- | -----------------------  | --------
 `name`            | Optional. The name of the attraction | `{"name":"Elziger Castle"}`
 `rating`          | Optional. Initial rating of the pin's attraction |`{"rating":"5"}`
-`pinType`         | Optional. The type of the pin where `0=Beginner`,`1=__`,`2=__`,`3=__` | `{"pinType":,"0"}`
+`pinType`         | Optional. The type of the pin where `0=Restaurant`,`1=Activities`,`2=__`,`3=__` | `{"pinType":"0"}`
+`cost`            | Optional. The approximate amount of money spent at the attraction | `{"cost":"0,0"}`
 `description`     | Optional. A description of the attraction | `{"description":"A historical castle"}`
+`image`           | Optional. A url to an image of the attraction | `{"image":"http://..."}`
 `coordinate`      | Required. An array containing `latitude` and `longitude` | `{"coordinate":{"latitude":"49","longitude":"50"}}`
 `linkedAccount`   | Required. Account that has posted the pin | `{"linkedAccount":"123"}`
 
 * **Example Query**
 
-  `'{"pinType":"0","pinName":"Hello world","rating":"5","description":"Very cool","coordinate":{"latitude":"49","longitude":"50"},"linkedAccount":"1"}'`
+  `'{"pinType":"0","name":"Hello world","rating":"5", "cost":"0.0", "description":"Very cool", "image":"http://...", "coordinate":{"latitude":"49","longitude":"50"},"linkedAccount":"1"}'`
 
 ### Getting a pin
 
@@ -102,8 +104,10 @@ Mongo + Express + Node server
 ----------------- | -----------------------  | --------
 `name`            | Optional. The name of the attraction | `{"name":"Elziger Castle"}`
 `rating`          | Optional. Initial rating of the pin's attraction |`{"rating":"5"}`
-`pinType`         | Optional. The type of the pin where `0=Beginner`,`1=__`,`2=__`,`3=__` | `{"pinType":,"0"}`
+`pinType`         | Optional. The type of the pin where `0=Restaurant`,`1=Activities`,`2=__`,`3=__` | `{"pinType":"0"}`
+`cost`            | Optional. The approximate amount of money spent at the attraction | `{"cost":"0,0"}`
 `description`     | Optional. A description of the attraction | `{"description":"A historical castle"}`
+`image`           | Optional. A url to an image of the attraction | `{"image":"http://..."}`
 `coordinate`      | Required. An array containing `latitude` and `longitude` | `{"coordinate":{"latitude":"49","longitude":"50"}}`
 `linkedAccount`   | Required. Account that has posted the pin | `{"linkedAccount":"123"}`
 
