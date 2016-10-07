@@ -2,7 +2,9 @@
 # {"rating": <string>, 
 # "pinType": 0, 
 # "name": <string>, 
+# "cost": 0.00,
 # "description": <string>, 
+# "image": url,
 # "likes" : 0, 
 # "coordinate": { 
 # 	"latitude": <double>, 
@@ -36,6 +38,11 @@ def main():
 				name = rating[1].split("'name': u'")
 				name = name[1].split("', u'rating_img_url_small':")
 				print name[0]
+				if "u'image_url" in name[1]:
+					img_url = name[1].split(", u'image_url': u'")
+					img_url = img_url[1].split("',")
+				else:
+					img_url[0] = "none"
 				if rating[0] =='0.0':
 					lat = name[1].split("latitude': ")
 					lat = lat[1].split(", u'longitude': ")
@@ -66,7 +73,9 @@ def main():
 				pin = {'rating': rating[0], 
 					'pinType': 0, 
 					'name': name[0], 
+					'cost': 0.00,
 					'description': category[1], 
+					'image': img_url[0],
 					'likes' : 0, 
 					'coordinate': { 
 						'latitude': lat[0], 
@@ -76,7 +85,7 @@ def main():
 					}
 				# add in post request here to post to server
 				# print pin
-				# url = 'http://localhost:8080/api/pins'
+				# url = 'http://localhost:8080/api/pins' # use if on localhost
 				# r = requests.post(url, json=pin)
 				# print r
 				myfile.write(str(pin))
