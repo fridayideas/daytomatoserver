@@ -289,7 +289,7 @@ app.post('/api/pins/:id/reviews', (req, res) => {
       }
   });
   db.collection(PINS_COLLECTION)
-    .findOneAndUpdateOne({ _id: new ObjectID(req.params.id) }, { $push: { reviews: updateDoc } },
+    .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, { $push: { reviews: updateDoc } },
       (err, doc) => {
         if (err) {
           handleError(res, err.message, 'Failed to add review to pin');
