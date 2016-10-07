@@ -173,8 +173,24 @@ Mongo + Express + Node server
    <_No Data Parameters in Body_>
 
 
+### Updating a review from a pin
 
+* **Request**
 
+  `PUT [host]/api/pins/:pinid/reviews/:accountid`
+
+*  **URL Params**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`pinid`            | Required. The ID of the requested pin from which the review will be updated | `POST [host]/api/pins/123/reviews/456`
+`accountid`      | Required. The user's account ID whose review is being updated. | `POST [host]/api/pins/123/reviews/456`
+
+* **Data Params on Request Body**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`text`            | Required. The description of the new review | `{"text":"This place is amazing!"}`
 
 
 
