@@ -261,7 +261,7 @@ module.exports = (db) => {
           res.status(204).end();
         }
       });
-  }).put('/:pinid/reviews/:accountid', (req, res) => {
+  }).put((req, res) => {
     // Updates review and sets createDate to new date
     db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid),
         reviews: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },

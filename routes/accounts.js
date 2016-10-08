@@ -28,7 +28,7 @@ module.exports = (db) => {
           res.status(200).json(docs);
         }
       });
-  }).post('/', (req, res) => {
+  }).post((req, res) => {
     // POST Account
     const newAccount = req.body;
     newAccount.createDate = new Date();
