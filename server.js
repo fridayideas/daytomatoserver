@@ -14,6 +14,7 @@ const ObjectID = mongodb.ObjectID;
  *   "pinType": <int>,
  *   "name": <string>,
  *   "cost": <int>,
+ *   "review": <string>,
  *   "description": <string>,
  *   "image": <string>,
  *   "likes" : <int>,
@@ -25,7 +26,7 @@ const ObjectID = mongodb.ObjectID;
  *   "linkedAccount": <ObjectId>,
  *   likedBy: [<ObjectId>],
  *   dislikedBy: [<ObjectId>],
- *   "reviews": [
+ *   "comments": [
  *     {
  *       "linkedAccount": <ObjectId>,
  *       "text": <string>,
@@ -133,10 +134,10 @@ app.route('/api/pins').get((req, res) => {
   const newPin = req.body;
   newPin.createDate = new Date();
   newPin.cost = req.body.cost || 0.0;
-  newPin.image = req.body.image || "";
-
+  newPin.image = req.body.image || '';
+  newPin.review = req.body.review || '';
   newPin.likes = req.body.likes || 0;
-  newPin.reviews = req.body.reviews || [];
+  newPin.comments = req.body.comments || [];
   if (!req.body.duration) {
     newPin.duration = -1; // Default duration, means never ending event (such as a park)
   }
@@ -295,11 +296,11 @@ app.post('/api/pins/:id/dislikes', (req, res) => {
     });
 });
 
-// POST Review with Pin ID
-app.post('/api/pins/:id/reviews', (req, res) => {
+// POST comment with Pin ID
+app.post('/api/pins/:id/comments', (req, res) => {
   const updateDoc = req.body;
   const accountId = updateDoc.linkedAccount;
-  let usernmreviewedby = '';
+  let usernmcommentedby = '';
   delete updateDoc._id;
   updateDoc.createDate = new Date();
   db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) },
@@ -307,22 +308,22 @@ app.post('/api/pins/:id/reviews', (req, res) => {
       if (err) {
         handleError(res, err.message, 'Failed to update pin');
       } else {
-        usernmreviewedby = doc.username;
+        usernmcommentedby = doc.username;
       }
     });
 
   db.collection(PINS_COLLECTION)
-    .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, { $push: { reviews: updateDoc } },
+    .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, { $push: { comments: updateDoc } },
       (err, doc) => {
         if (err) {
-          handleError(res, err.message, 'Failed to add review to pin');
+          handleError(res, err.message, 'Failed to add comment to pin');
         } else {
           db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
             _id: new ObjectID(doc.value.linkedAccount),
           }, {
             $push: {
               feed: {
-                $each: [`${usernmreviewedby} reviewed your pin ${doc.value.pinName}`],
+                $each: [`${usernmcommentedby} commented on your pin ${doc.value.pinName}`],
                 $slice: 5,
                 $position: 0,
               },
@@ -339,29 +340,29 @@ app.post('/api/pins/:id/reviews', (req, res) => {
       });
 });
 
-// DELETE Review with Pin ID & Account IDs
-app.delete('/api/pins/:pinid/reviews/:accountid', (req, res) => {
-  console.log(`Trying to remove from pin ${req.params.pinid} review from account ${req.params.accountid}`);
+// DELETE comment with Pin ID & Account IDs
+app.delete('/api/pins/:pinid/comments/:accountid', (req, res) => {
+  console.log(`Trying to remove from pin ${req.params.pinid} comment from account ${req.params.accountid}`);
 
   db.collection(PINS_COLLECTION).update({ _id: new ObjectID(req.params.pinid) },
-    { $pull: { reviews: { linkedAccount: parseInt(req.params.accountid, 10) } } },
+    { $pull: { comments: { linkedAccount: parseInt(req.params.accountid, 10) } } },
     (err, doc) => {
       if (err) {
-        handleError(res, err.message, 'Failed to remove review from pin');
+        handleError(res, err.message, 'Failed to remove comment from pin');
       } else {
         res.status(204).end();
       }
     });
 });
 
- // Updates review and sets createDate to new date
-app.put('/api/pins/:pinid/reviews/:accountid', (req, res) => {
+ // Updates comment and sets createDate to new date
+app.put('/api/pins/:pinid/comments/:accountid', (req, res) => {
   db.collection(PINS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.pinid),
-  reviews: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },
-    { $set: { 'reviews.$.text': req.body.text, 'reviews.$.createDate': new Date() } },
+  comments: { $elemMatch: { linkedAccount: parseInt(req.params.accountid, 10) } } },
+    { $set: { 'comments.$.text': req.body.text, 'comments.$.createDate': new Date() } },
     (err, doc) => {
       if (err) {
-        handleError(res, err.message, 'Failed to update review from pin');
+        handleError(res, err.message, 'Failed to update comment from pin');
       } else {
         res.status(204).end();
       }
