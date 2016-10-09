@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"No tests yet!\"",
-    "start": "node server.js",
+    "start": "node index.js",
     "lint": "node ./node_modules/eslint/bin/eslint.js ."
   },
   "engines": {
