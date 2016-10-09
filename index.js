@@ -50,31 +50,34 @@ const routes = require('./routes/index');
  * }
  */
 
+// Initialize the app.
+const app = express();
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.json());
+
 // -------------- DATABASE SET UP ------------------------------
 // Create a database variable outside of the database connection callback
 // to reuse the connection pool in your app.
 // Connect to the database before starting the application server.
 const connString = process.env.MONGO_URI;
-mongodb.MongoClient.connect(connString, (err, database) => {
-  if (err) {
-    console.log(err);
-    process.exit(1);
-  }
+exports.connect = () =>
+  mongodb.MongoClient.connect(connString)
+    .then((db) => {
+      // Save database object from the callback for reuse.
+      console.log('Database connection ready');
 
-  // Save database object from the callback for reuse.
-  console.log('Database connection ready');
+      // Routes
+      app.use('/api', routes(db));
 
-  // Initialize the app.
-  const app = express();
-  app.use(express.static(path.join(__dirname, 'public')));
-  app.use(bodyParser.json());
+      const server = app.listen(process.env.PORT || 8080, () => {
+        const port = server.address().port;
+        console.log('App now running on port', port);
+      });
 
-  // Routes
-  app.use('/api', routes(database));
-
-  const server = app.listen(process.env.PORT || 8080, () => {
-    const port = server.address().port;
-    console.log('App now running on port', port);
-  });
-});
-
+      return {
+        app, db,
+      };
+    }, (err) => {
+      console.log(err);
+      process.exit(1);
+    });
