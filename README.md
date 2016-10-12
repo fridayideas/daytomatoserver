@@ -282,8 +282,7 @@ Mongo + Express + Node server
 `name`            | Optional. The name of the trip | `{"name":"Essential attractions"}`
 `type`         	  | Optional. The type of the trip | `{"type":"Foodie"}`
 `description`     | Optional. A description of the trip | `{"description":"All the best attrations you can see in one day"}`
-`pins`		  | Required. An array of the pin id's in the trip | `{"pins": ["57f353c0a77c0b319430919c",
-"57f35406a77c0b319430919e"] }`
+`pins`		  | Required. An array of the pin id's in the trip | `{"pins": ["123", "456"] }`
 `linkedAccount`   | Required. Account that has posted the trip | `{"linkedAccount":"57f19560d531481da80e3a09"}`
 
 * **Example Query**
