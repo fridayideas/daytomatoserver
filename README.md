@@ -248,3 +248,75 @@ Mongo + Express + Node server
 
    <_No Data Parameters in Body_>
 
+## Trips
+  <_A trip is a collection of pins that a user can visit in a day_>
+
+### Getting trips
+
+* **Request**
+
+  `GET [host]/api/trips`
+
+*  **URL Params**
+
+   <_No URL parameters_>
+
+* **Data Params in Request Body**
+
+   <_No request parameters_>
+
+### Creating a trip
+
+* **Request**
+
+  `POST [host]/api/trips`
+
+*  **URL Params**
+
+   <_No URL parameters_>
+
+* **Data Params on Request Body**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`name`            | Optional. The name of the trip | `{"name":"Essential attractions"}`
+`type`         	  | Optional. The type of the trip | `{"type":"Foodie"}`
+`description`     | Optional. A description of the trip | `{"description":"All the best attrations you can see in one day"}`
+`pins`		  | Required. An array of the pin id's in the trip | `{"pins": ["123", "456"] }`
+`linkedAccount`   | Required. Account that has posted the trip | `{"linkedAccount":"57f19560d531481da80e3a09"}`
+
+* **Example Query**
+
+  `'{ "name": "Trip1", "type": "Sightseeing", "pins": [ "57f353c0a77c0b319430919c", "57f35406a77c0b319430919e", "57f357369e1f9022c8316bbf" ], "linkedAccount": "57f19560d531481da80e3a09" }'`
+
+### Getting a trip
+
+* **Request**
+
+  `GET [host]/api/pins/:id`
+
+*  **URL Params**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`id`            | Required. The ID of the requested trip | `GET [HOST]/api/trips/123`
+
+* **Data Params on Request Body**
+
+   <_No Data Parameters in Body_>
+
+### Deleting a trip
+
+* **Request**
+
+  `DELETE [host]/api/trip/:id`
+
+*  **URL Params**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`id`            | Required. The ID of the requested trip | `DELETE [HOST]/api/trips/123`
+
+* **Data Params on Request Body**
+
+   <_No Data Parameters in Body_>
