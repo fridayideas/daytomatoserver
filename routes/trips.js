@@ -17,6 +17,12 @@ const router = new express.Router();
  */
 
 module.exports = (db) => {
+  function pinInfoForTrip(trip) {
+    const pinIds = trip.pins.map(ObjectID);
+    return db.collection(PINS_COLLECTION)
+      .find({ _id: { $in: pinIds } }).toArray()
+      .then(pins => Object.assign({}, trip, { pins }));
+  }
 
   router.route('/').get((req, res) => {
     db.collection(TRIPS_COLLECTION).find()
@@ -24,31 +30,20 @@ module.exports = (db) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to get trips');
         } else {
-          res.status(200).json(docs);
+          Promise.all(docs.map(pinInfoForTrip))
+            .then(trips => res.status(200).json(trips));
+          // res.status(200).json(docs);
         }
-    });
+      });
   }).post((req, res) => {
     const newTrip = req.body;
     newTrip.createDate = new Date();
+    newTrip.pins = newTrip.pins.map(ObjectID);
 
-    var pin_ids = newTrip.pins.map(function (item){ return ObjectID(item)});
-    newTrip.pins = [];
-
-    for(i = 0; i < pin_ids.length; i++) {
-      db.collection(PINS_COLLECTION).findOne({ _id: pin_ids[i] },
-        (err, doc) => {
-          if(err) {
-            utils.handleError(res, err.message, 'Failed to get pins from trip');
-          } else {
-            newTrip.pins.push(doc);
-          }
-        });
-    }
     db.collection(TRIPS_COLLECTION).insertOne(newTrip, (err, doc) => {
       if (err) {
-        handleError(res, err.message, 'Failed to create new trip.');
+        utils.handleError(res, err.message, 'Failed to create new trip.');
       } else {
-        console.log(50)
         res.status(201).json(doc.ops[0]);
       }
     });
@@ -59,7 +54,7 @@ module.exports = (db) => {
       if (err) {
         utils.handleError(res, err.message, 'Failed to get trip');
       } else {
-        res.status(200).json(doc);
+        pinInfoForTrip(doc).then(trip => res.status(200).json(trip));
       }
     });
   }).put((req, res) => {
