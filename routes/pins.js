@@ -221,44 +221,42 @@ module.exports = (db) => {
     const updateDoc = req.body;
     const accountId = updateDoc.linkedAccount;
     // TODO possibly not set if async timings are off
-    let usernmcommentedby = '';
     delete updateDoc._id;
     updateDoc.createDate = new Date();
-    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) },
-      (err, doc) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to update pin');
-        } else {
-          usernmcommentedby = doc.username;
-        }
-      });
-
-    db.collection(PINS_COLLECTION)
-      .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, { $push: { comments: updateDoc } },
-        (err, doc) => {
-          if (err) {
-            utils.handleError(res, err.message, 'Failed to add comment to pin');
-          } else {
-            db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
-              _id: new ObjectID(doc.value.linkedAccount),
-            }, {
-              $push: {
-                feed: {
-                  $each: [`${usernmcommentedby} commented your pin ${doc.value.pinName}`],
-                  $slice: 5,
-                  $position: 0,
-                },
-              },
-            }, (err1, _) => {
-              if (err1) {
-                utils.handleError(res, err1.message, 'Failed to update feed');
+    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) })
+      .then((doc) => doc.username, (err) => {
+        utils.handleError(res, err.message, 'Failed to update pin');
+      })
+      .then((usernmcommentedby) => {
+        db.collection(PINS_COLLECTION)
+          .findOneAndUpdate({ _id: new ObjectID(req.params.id) },
+            { $push: { comments: updateDoc } },
+            (err, doc) => {
+              if (err) {
+                utils.handleError(res, err.message, 'Failed to add comment to pin');
               } else {
+                db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
+                  _id: new ObjectID(doc.value.linkedAccount),
+                }, {
+                  $push: {
+                    feed: {
+                      $each: [`${usernmcommentedby} commented your pin ${doc.value.pinName}`],
+                      $slice: 5,
+                      $position: 0,
+                    },
+                  },
+                }, (err1, _) => {
+                  if (err1) {
+                    utils.handleError(res, err1.message, 'Failed to update feed');
+                  } else {
+                    res.status(204).end();
+                  }
+                });
                 res.status(204).end();
               }
             });
-            res.status(204).end();
-          }
-        });
+      });
+
   });
 
   // DELETE Comment with Pin ID & Account IDs
