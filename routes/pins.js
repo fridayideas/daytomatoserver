@@ -7,7 +7,8 @@ const ACCOUNTS_COLLECTION = 'accounts';
 
 const router = new express.Router();
 
-module.exports = (db) => {
+module.exports = (db, auth) => {
+  router.use(auth);
   /**
    * "/pins"
    *   GET: finds all pins
@@ -224,7 +225,7 @@ module.exports = (db) => {
     delete updateDoc._id;
     updateDoc.createDate = new Date();
     db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) })
-      .then((doc) => doc.username, (err) => {
+      .then(doc => doc.username, (err) => {
         utils.handleError(res, err.message, 'Failed to update pin');
       })
       .then((usernmcommentedby) => {
@@ -256,7 +257,6 @@ module.exports = (db) => {
               }
             });
       });
-
   });
 
   // DELETE Comment with Pin ID & Account IDs

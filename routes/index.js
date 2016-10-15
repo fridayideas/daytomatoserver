@@ -8,9 +8,9 @@ const pins = require('./pins');
 const accounts = require('./accounts');
 const trips = require('./trips');
 
-module.exports = (db) => {
+module.exports = (db, auth) => {
   // -------------- PINS API BELOW -------------------------------
-  router.use('/pins', pins(db));
+  router.use('/pins', pins(db, auth));
   // -------------- ACCOUNT API BELOW -------------------------
   router.use('/accounts', accounts(db));
   // -------------- TRIPS API BELOW -------------------------
