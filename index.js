@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const mongodb = require('mongodb');
+const jwt = require('express-jwt');
 
 const routes = require('./routes/index');
 
@@ -55,6 +56,12 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 
+// JWT auth credentials for Auth0
+const auth = jwt({
+  secret: new Buffer(process.env.CLIENT_SECRET, 'base64'),
+  audience: process.env.CLIENT_ID,
+});
+
 // -------------- DATABASE SET UP ------------------------------
 // Create a database variable outside of the database connection callback
 // to reuse the connection pool in your app.
@@ -67,7 +74,7 @@ exports.connect = () =>
       console.log('Database connection ready');
 
       // Routes
-      app.use('/api', routes(db));
+      app.use('/api', routes(db, auth));
 
       const server = app.listen(process.env.PORT || 8080, () => {
         const port = server.address().port;

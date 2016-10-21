@@ -11,10 +11,14 @@
   "engines": {
     "node": "6.x"
   },
-  "pre-commit": ["lint"],
+  "pre-commit": [
+    "lint"
+  ],
   "dependencies": {
     "body-parser": "^1.13.3",
+    "dotenv": "^2.0.0",
     "express": "^4.13.3",
+    "express-jwt": "^5.1.0",
     "mongodb": "^2.1.6"
   },
   "devDependencies": {
