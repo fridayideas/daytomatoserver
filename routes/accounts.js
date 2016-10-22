@@ -7,7 +7,33 @@ const ACCOUNTS_COLLECTION = 'accounts';
 
 const router = new express.Router();
 
-module.exports = (db) => {
+module.exports = (db, auth) => {
+  router.use(auth);
+
+  // GET current authenticated user (stateless + uses token)
+  // TODO a better name for this?
+  router.get('/currentuser', (req, res) => {
+    db.collection(ACCOUNTS_COLLECTION)
+      .findOne({ auth0Id: req.user.sub }).then((result) => {
+        if (!result) {
+          db.collection(ACCOUNTS_COLLECTION).insertOne({
+            auth0Id: req.user.sub,
+            createDate: new Date(),
+            numSeeds: 0,
+            numPins: 0,
+          }).then((created) => {
+            const account = created.ops[0];
+            delete account.auth0Id;
+            res.status(200).json(account);
+          });
+        } else {
+          res.status(200).json(result);
+        }
+      }).catch((err) => {
+        utils.handleError(res, err.message, 'Failed to get account.');
+      });
+  });
+
   router.get('/:id', (req, res) => {
     db.collection(ACCOUNTS_COLLECTION)
       .findOne({ _id: new ObjectID(req.params.id) }, (err, result) => {

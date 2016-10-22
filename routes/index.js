@@ -12,7 +12,7 @@ module.exports = (db, auth) => {
   // -------------- PINS API BELOW -------------------------------
   router.use('/pins', pins(db, auth));
   // -------------- ACCOUNT API BELOW -------------------------
-  router.use('/accounts', accounts(db));
+  router.use('/accounts', accounts(db, auth));
   // -------------- TRIPS API BELOW -------------------------
   router.use('/trips', trips(db));
 

@@ -67,7 +67,7 @@ const auth = jwt({
 // to reuse the connection pool in your app.
 // Connect to the database before starting the application server.
 const connString = process.env.MONGO_URI;
-exports.connect = () =>
+exports.connect = (connPort = 8080) =>
   mongodb.MongoClient.connect(connString)
     .then((db) => {
       // Save database object from the callback for reuse.
@@ -76,7 +76,7 @@ exports.connect = () =>
       // Routes
       app.use('/api', routes(db, auth));
 
-      const server = app.listen(process.env.PORT || 8080, () => {
+      const server = app.listen(process.env.PORT || connPort, () => {
         const port = server.address().port;
         console.log('App now running on port', port);
       });

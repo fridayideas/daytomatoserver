@@ -23,7 +23,7 @@ describe('Pins', () => {
   let db;
   let pins;
   let accounts;
-  before(() => server.connect().then((res) => {
+  before(() => server.connect(5000).then((res) => {
     app = res.app;
     db = res.db;
     pins = db.collection('pins');
@@ -32,7 +32,8 @@ describe('Pins', () => {
   }));
 
   // reset db
-  beforeEach(() => pins.deleteMany());
+  afterEach(() => pins.deleteMany());
+  afterEach(() => accounts.deleteMany());
 
   describe('GET pins', () => {
     beforeEach(() => pins.insertMany(getPins()));
