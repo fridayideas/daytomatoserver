@@ -130,5 +130,52 @@ module.exports = (db) => {
       });
   });
 
+  router.post('/:id/dislikes', (req, res) => {
+    const accountId = req.body.accountId;
+    let usernmdislikedby = '';
+    if (!accountId) {
+      utils.handleError(res, 'User id not provided', 'Invalid user id', 400);
+      return;
+    }
+
+    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) },
+      (err, doc) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to find account of user disliking trip');
+        } else {
+          usernmdislikedby = doc.username;
+        }
+      });
+
+    db.collection(TRIPS_COLLECTION)
+      .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
+        $addToSet: { dislikedBy: accountId },
+        $pull: { likedBy: accountId },
+        $inc: { likes: -1 },
+      }, (err, doc) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to add dislike to trip');
+        } else {
+          db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
+            _id: new ObjectID(doc.value.linkedAccount),
+          }, {
+            $push: {
+              feed: { $each: [`${usernmdislikedby} disliked your trip ${doc.value.name}`],
+                $slice: 5,
+                $position: 0,
+              },
+            },
+          }, (err1, _) => {
+            if (err) {
+              utils.handleError(res, err1.message, 'Failed to update feed');
+            } else {
+              res.status(204).end();
+            }
+          });
+          res.status(204).end();
+        }
+      });
+  });
+
   return router;
 };
