@@ -11,6 +11,9 @@ const router = new express.Router();
 /* trip
  * name: ""
  * type: ""
+ * likes: #
+ * dislikes: #
+ * rating: 1-5
  * pins: [pinid1,pinid2]
  *
  *
@@ -76,6 +79,53 @@ module.exports = (db) => {
           utils.handleError(res, err.message, 'Failed to delete pin');
         } else {
           res.status(204).end();
+        }
+      });
+  });
+
+  router.post('/:id/likes', (req, res) => {
+    const accountId = req.body.accountId;
+    let usernmlikedby = '';
+    if (!accountId) {
+      utils.handleError(res, 'User id not provided', 'Invalid user id', 400);
+      return;
+    }
+
+    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) },
+      (err, doc) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to update pin');
+        } else {
+          usernmlikedby = doc.username;
+
+          db.collection(TRIPS_COLLECTION)
+            .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
+              $addToSet: { likedBy: accountId },
+              $pull: { dislikedBy: accountId },
+              $inc: { likes: 1 },
+            }, (err, doc) => {
+              if (err) {
+                utils.handleError(res, err.message, 'Failed to add like to trip');
+              } else {
+                db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
+                  _id: new ObjectID(doc.value.linkedAccount),
+                }, {
+                  $push: {
+                    feed: { $each: [`${usernmlikedby} liked your trip ${doc.value.name}`],
+                      $slice: 5,
+                      $position: 0,
+                    },
+                  },
+                }, (err1, _) => {
+                  if (err1) {
+                    utils.handleError(res, err1.message, 'Failed to update feed');
+                  } else {
+                    res.status(204).end();
+                  }
+                });
+                res.status(204).end();
+              }
+          });
         }
       });
   });
