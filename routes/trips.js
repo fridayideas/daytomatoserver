@@ -177,5 +177,62 @@ module.exports = (db) => {
       });
   });
 
+  router.post('/:id/rating', (req, res) => {
+    const accountId = req.body.accountId;
+    let usernmratedby = '';
+    if (!accountId) {
+      utils.handleError(res, 'User id not provided', 'Invalid user id', 400);
+      return;
+    }
+
+    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) },
+      (err, doc) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to find account of user rating trip');
+        } else {
+          usernmratedby = doc.username;
+        }
+      });
+
+    db.collection(TRIPS_COLLECTION)
+      .find({ _id: new ObjectID(req.params.id) })
+        .forEach( function(x) {
+          if(x.numRatings==null){
+            var newNumRatings = 1
+          }
+          else{
+            newNumRatings = x.numRatings + 1;
+          }
+          var newRating = (x.rating * (newNumRatings - 1) + req.body.rating)/newNumRatings;
+          db.collection(TRIPS_COLLECTION).findOneAndUpdate( { _id: new ObjectID(req.params.id) },
+            { $set: { rating: newRating },
+              $inc: { numRatings: 1 } },
+              (err, doc) => {
+                if (err) {
+                  utils.handleError(res, err.message, 'Failed to find trip');
+                } else {
+                  db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
+                    _id: new ObjectID(doc.value.linkedAccount),
+                  }, {
+                    $push: {
+                      feed: { $each: [`${usernmratedby} rated your trip ${doc.value.name}, ${req.body.rating}/5`],
+                        $slice: 5,
+                        $position: 0,
+                      },
+                    },
+                  }, (err1, _) => {
+                    if (err) {
+                      utils.handleError(res, err1.message, 'Failed to update feed');
+                    } else {
+                      res.status(204).end();
+                    }
+                  });
+                  res.status(204).end();
+                }
+              }
+          );
+        });
+  });
+
   return router;
 };
