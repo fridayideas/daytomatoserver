@@ -199,11 +199,12 @@ module.exports = (db) => {
         .forEach( function(x) {
           if(x.numRatings==null){
             var newNumRatings = 1
+            var newRating = req.body.rating;
           }
           else{
-            newNumRatings = x.numRatings + 1;
+            var newNumRatings = x.numRatings + 1;
+            var newRating = (x.rating * x.numRatings + req.body.rating)/newNumRatings;
           }
-          var newRating = (x.rating * (newNumRatings - 1) + req.body.rating)/newNumRatings;
           db.collection(TRIPS_COLLECTION).findOneAndUpdate( { _id: new ObjectID(req.params.id) },
             { $set: { rating: newRating },
               $inc: { numRatings: 1 } },
