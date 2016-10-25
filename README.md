@@ -126,6 +126,12 @@ Mongo + Express + Node server
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the requested pin | `POST [HOST]/api/pins/123/likes`
 
+* **Data Params on Request Body**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`accountId`            | Required. The ID of the user liking the pin | `{"accountId": 123}`
+
 ### Unliking a pin
 
    <_Decreases the likes amount by 1 to the specified pin_>
@@ -139,6 +145,12 @@ Mongo + Express + Node server
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `id`            | Required. The ID of the requested pin | `POST [HOST]/api/pins/123/dislikes`
+
+* **Data Params on Request Body**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`accountId`            | Required. The ID of the user disliking the pin | `{"accountId": 123}`
 
 ### Adding a review to a pin
 
@@ -320,3 +332,64 @@ Mongo + Express + Node server
 * **Data Params on Request Body**
 
    <_No Data Parameters in Body_>
+
+### Liking a trip
+
+   <_Increases the likes amount by 1 to the specified trip_>
+
+* **Request**
+
+  `POST [host]/api/trips/:id/likes`
+
+*  **URL Params**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`id`            | Required. The ID of the requested trip | `POST [HOST]/api/trips/123/likes`
+
+* **Data Params on Request Body**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`accountId`            | Required. The ID of the user liking the trip | `{"accountId": 123}`
+
+### Disliking a trip
+
+   <_Decreases the likes amount by 1 to the specified trip_>
+
+* **Request**
+
+  `POST [host]/api/trips/:id/dislikes`
+
+*  **URL Params**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`id`            | Required. The ID of the requested trip | `POST [HOST]/api/trips/123/dislikes`
+
+* **Data Params on Request Body**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`accountId`            | Required. The ID of the user disliking the trip | `{"accountId": 123}`
+
+### Rating a trip
+
+   <_Updates the average rating of the specified trip according to rating given_>
+
+* **Request**
+
+  `POST [host]/api/trips/:id/rating`
+
+*  **URL Params**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`id`            | Required. The ID of the requested trip | `POST [HOST]/api/trips/123/rating`
+
+* **Data Params on Request Body**
+
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`accountId`            | Required. The ID of the user rating the trip | `{"accountId": 123}`
+`rating`            | Required. The rating from 1-5 given by the user | `{"rating": 5}`
