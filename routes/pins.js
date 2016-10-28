@@ -57,6 +57,8 @@ module.exports = (db, auth) => {
     newPin.review = req.body.review || '';
     newPin.likes = req.body.likes || 0;
     newPin.comments = req.body.comments || [];
+    newPin.comments = req.body.likedBy || [];
+    newPin.comments = req.body.dislikedBy || [];
 
     if (!req.body.duration) {
       newPin.duration = -1; // Default duration, means never ending event (such as a park)
@@ -290,4 +292,3 @@ module.exports = (db, auth) => {
 
   return router;
 };
-
