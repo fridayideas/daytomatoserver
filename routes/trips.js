@@ -28,14 +28,37 @@ module.exports = (db) => {
   }
 
   router.route('/').get((req, res) => {
-    db.collection(TRIPS_COLLECTION).find()
+    const filterKeys = ['type', 'cost', 'linkedAccount'];
+    const sortKeys = ['srating', 'scost', 'screateDate', 'slikes'];
+    const keys = [];
+    for(var i in req.query){
+      if(i == 'linkedAccount'){
+        keys.push( { [i] : req.query[i] } );
+      }
+      else if(i == 'cost'){
+        const c = (req.query.cost).split(',');
+        keys.push( {
+          $and: [
+            { 'cost' : { $lte: parseInt(c[1]) } },
+            { 'cost' : { $gte: parseInt(c[0]) } }
+          ] }
+        );
+      }
+      else{
+        keys.push( { [i] : parseInt(req.query[i]) } );
+      }
+    }
+
+    const filters = keys.length>0 ? { $and: keys } : {};
+
+    db.collection(TRIPS_COLLECTION)
+      .find(filters)
       .toArray((err, docs) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to get trips');
         } else {
           Promise.all(docs.map(pinInfoForTrip))
             .then(trips => res.status(200).json(trips));
-          // res.status(200).json(docs);
         }
       });
   }).post((req, res) => {
@@ -234,6 +257,41 @@ module.exports = (db) => {
           );
         });
   });
+
+  router.route('/outdoor/one').get((req, res) => {
+    console.log(req.query.type)
+    db.collection(TRIPS_COLLECTION).find( {"type": parseInt(req.query.type)} )
+      .toArray((err, docs) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to get trips');
+        } else {
+          Promise.all(docs.map(pinInfoForTrip))
+            .then(trips => res.status(200).json(trips));
+        }
+      });
+    });
+    router.route('/attractions/two').get((req, res) => {
+      db.collection(TRIPS_COLLECTION).find( {"type":2} )
+        .toArray((err, docs) => {
+          if (err) {
+            utils.handleError(res, err.message, 'Failed to get trips');
+          } else {
+            Promise.all(docs.map(pinInfoForTrip))
+              .then(trips => res.status(200).json(trips));
+          }
+        });
+      });
+      router.route('/foodie/three').get((req, res) => {
+        db.collection(TRIPS_COLLECTION).find( {"type":3} )
+          .toArray((err, docs) => {
+            if (err) {
+              utils.handleError(res, err.message, 'Failed to get trips');
+            } else {
+              Promise.all(docs.map(pinInfoForTrip))
+                .then(trips => res.status(200).json(trips));
+            }
+          });
+        });
 
   return router;
 };
