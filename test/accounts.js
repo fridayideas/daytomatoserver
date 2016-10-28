@@ -34,6 +34,7 @@ describe('Accounts', () => {
           expect(res).to.have.status(200);
           const account = res.body;
           expect(account.createDate).to.be.not.empty;
+          expect(account.username).to.equal('TestUser');
           expect(account.numSeeds).to.equal(0);
           expect(account.numPins).to.equal(0);
         })
@@ -42,6 +43,7 @@ describe('Accounts', () => {
         }));
     it('should find an existing user account', () =>
       accounts.insertOne({
+        username: 'TestUser',
         auth0Id: process.env.TEST_USER_SUB,
         createDate: new Date(),
         numSeeds: 10,
@@ -54,6 +56,7 @@ describe('Accounts', () => {
             expect(res).to.have.status(200);
             const account = res.body;
             expect(new Date(account.createDate)).to.eql(acct.createDate);
+            expect(account.username).to.equal(acct.username);
             expect(account.numSeeds).to.equal(acct.numSeeds);
             expect(account.numPins).to.equal(acct.numPins);
           })
