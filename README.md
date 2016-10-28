@@ -298,7 +298,7 @@ Mongo + Express + Node server
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `name`            | Optional. The name of the trip | `{"name":"Essential attractions"}`
-`type`         	  | Optional. The type of the trip | `{"type":"Foodie"}`
+`type`         	  | Optional. The type of the trip. 1=outdoors, 2=attractions, 3=foodie | `{"type":2}`
 `description`     | Optional. A description of the trip | `{"description":"All the best attrations you can see in one day"}`
 `cost`     | Optional. Estimated cost of the trip | `{"cost":20}`
 `pins`		  | Required. An array of the pin id's in the trip | `{"pins": ["123", "456"] }`

@@ -70,6 +70,7 @@ module.exports = (db) => {
   }).post((req, res) => {
     const newTrip = req.body;
     newTrip.createDate = new Date();
+    newTrip.likes = 0;
     newTrip.pins = newTrip.pins.map(ObjectID);
 
     db.collection(TRIPS_COLLECTION).insertOne(newTrip, (err, doc) => {
@@ -263,41 +264,6 @@ module.exports = (db) => {
           );
         });
   });
-
-  router.route('/outdoor/one').get((req, res) => {
-    console.log(req.query.type)
-    db.collection(TRIPS_COLLECTION).find( {"type": parseInt(req.query.type)} )
-      .toArray((err, docs) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to get trips');
-        } else {
-          Promise.all(docs.map(pinInfoForTrip))
-            .then(trips => res.status(200).json(trips));
-        }
-      });
-    });
-    router.route('/attractions/two').get((req, res) => {
-      db.collection(TRIPS_COLLECTION).find( {"type":2} )
-        .toArray((err, docs) => {
-          if (err) {
-            utils.handleError(res, err.message, 'Failed to get trips');
-          } else {
-            Promise.all(docs.map(pinInfoForTrip))
-              .then(trips => res.status(200).json(trips));
-          }
-        });
-      });
-      router.route('/foodie/three').get((req, res) => {
-        db.collection(TRIPS_COLLECTION).find( {"type":3} )
-          .toArray((err, docs) => {
-            if (err) {
-              utils.handleError(res, err.message, 'Failed to get trips');
-            } else {
-              Promise.all(docs.map(pinInfoForTrip))
-                .then(trips => res.status(200).json(trips));
-            }
-          });
-        });
 
   return router;
 };
