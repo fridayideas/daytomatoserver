@@ -29,10 +29,12 @@ module.exports = (db) => {
 
   router.route('/').get((req, res) => {
     const filterKeys = ['type', 'cost', 'linkedAccount'];
-    const sortKeys = ['srating', 'scost', 'screateDate', 'slikes'];
+    const sortKeys = ['rating', 'cost', 'createDate', 'likes'];
+    const sortKey = (req.query.sort || '').split(',');
     const keys = [];
     for(var i in req.query){
-      if(i == 'linkedAccount'){
+      if(i == 'sort') {}
+      else if(i == 'linkedAccount'){
         keys.push( { [i] : req.query[i] } );
       }
       else if(i == 'cost'){
@@ -50,9 +52,13 @@ module.exports = (db) => {
     }
 
     const filters = keys.length>0 ? { $and: keys } : {};
+    const sort = sortKeys.includes(sortKey) ? {
+      [sortKey[0]] : [parseInt(sortKey[1])]
+    } : {};
 
     db.collection(TRIPS_COLLECTION)
       .find(filters)
+      .sort(sort)
       .toArray((err, docs) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to get trips');
