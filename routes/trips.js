@@ -28,19 +28,49 @@ module.exports = (db) => {
   }
 
   router.route('/').get((req, res) => {
-    db.collection(TRIPS_COLLECTION).find()
+    const filterKeys = ['type', 'cost', 'linkedAccount'];
+    const sortKeys = ['rating', 'cost', 'createDate', 'likes'];
+    const sortKey = (req.query.sort || '').split(',');
+    const keys = [];
+    for(var i in req.query){
+      if(i == 'sort') {}
+      else if(i == 'linkedAccount'){
+        keys.push( { [i] : req.query[i] } );
+      }
+      else if(i == 'cost'){
+        const c = (req.query.cost).split(',');
+        keys.push( {
+          $and: [
+            { 'cost' : { $lte: parseInt(c[1]) } },
+            { 'cost' : { $gte: parseInt(c[0]) } }
+          ] }
+        );
+      }
+      else{
+        keys.push( { [i] : parseInt(req.query[i]) } );
+      }
+    }
+
+    const filters = keys.length>0 ? { $and: keys } : {};
+    const sort = sortKeys.includes(sortKey) ? {
+      [sortKey[0]] : [parseInt(sortKey[1])]
+    } : {};
+
+    db.collection(TRIPS_COLLECTION)
+      .find(filters)
+      .sort(sort)
       .toArray((err, docs) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to get trips');
         } else {
           Promise.all(docs.map(pinInfoForTrip))
             .then(trips => res.status(200).json(trips));
-          // res.status(200).json(docs);
         }
       });
   }).post((req, res) => {
     const newTrip = req.body;
     newTrip.createDate = new Date();
+    newTrip.likes = 0;
     newTrip.pins = newTrip.pins.map(ObjectID);
 
     db.collection(TRIPS_COLLECTION).insertOne(newTrip, (err, doc) => {

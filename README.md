@@ -271,7 +271,13 @@ Mongo + Express + Node server
 
 *  **URL Params**
 
-   <_No URL parameters_>
+     Name         |   Description & Usage    |   Example
+----------------- | -----------------------  | --------
+`type`            | Optional. Filter by type of trip. 1=outdoors, 2=attractions, 3=foodie | `GET [HOST]/api/trips?type=1
+`cost`            | Optional. Filter by cost, specifying upper and lower bound | `GET [HOST]/api/trips?cost=0,50`
+`linkedAccount`            | Optional. Filter by user account that created trip | `GET [HOST]/api/trips?linkedAccount=57f19560d531481da80e3a09`
+`sort`            | Optional. Sort by field specified, from high to low (-1) or low to high (1) | `GET [HOST]/api/trips?sort=createDate,1`
+
 
 * **Data Params in Request Body**
 
@@ -292,14 +298,15 @@ Mongo + Express + Node server
      Name         |   Description & Usage    |   Example
 ----------------- | -----------------------  | --------
 `name`            | Optional. The name of the trip | `{"name":"Essential attractions"}`
-`type`         	  | Optional. The type of the trip | `{"type":"Foodie"}`
+`type`         	  | Optional. The type of the trip. 1=outdoors, 2=attractions, 3=foodie | `{"type":2}`
 `description`     | Optional. A description of the trip | `{"description":"All the best attrations you can see in one day"}`
+`cost`     | Optional. Estimated cost of the trip | `{"cost":20}`
 `pins`		  | Required. An array of the pin id's in the trip | `{"pins": ["123", "456"] }`
 `linkedAccount`   | Required. Account that has posted the trip | `{"linkedAccount":"57f19560d531481da80e3a09"}`
 
 * **Example Query**
 
-  `'{ "name": "Trip1", "type": "Sightseeing", "pins": [ "57f353c0a77c0b319430919c", "57f35406a77c0b319430919e", "57f357369e1f9022c8316bbf" ], "linkedAccount": "57f19560d531481da80e3a09" }'`
+  `'{ "name": "Trip1", "type": 1, "cost": 20, "pins": [ "57f353c0a77c0b319430919c", "57f35406a77c0b319430919e", "57f357369e1f9022c8316bbf" ], "linkedAccount": "57f19560d531481da80e3a09" }'`
 
 ### Getting a trip
 
