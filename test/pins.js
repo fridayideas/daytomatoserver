@@ -175,51 +175,125 @@ describe('Pins', () => {
     let inserted;
     let account;
     beforeEach(() => pins.insertOne({
-      name: 'Test1', cost: 25.0, likes: 0,
+      name: 'Test1',
+      cost: 25.0,
+      likes: 0,
+      likedBy: [],
+      dislikedBy: [],
     }).then((res) => {
       inserted = res.ops[0];
-      return accounts.insertOne({});
+      return accounts.insertOne({
+        auth0Id: process.env.TEST_USER_SUB,
+        username: 'TestUser',
+      });
     }).then((res) => {
       account = res.ops[0];
     }));
 
-    describe('POST pin likes', () => {
+    describe('Pin likes', () => {
       it('should add likes to a pin', () =>
         chai.request(app)
-          .post(`/api/pins/${inserted._id}/likes`)
+          .put(`/api/pins/${inserted._id}/likes/${account._id}`)
           .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
-          .send({ accountId: account._id })
+          .send({ dir: 1 })
           .then((res) => {
             expect(res).to.have.status(204);
             return pins.findOne().then((p) => {
               expect(p.likes).to.equal(1);
               expect(p.dislikedBy).to.be.empty;
               expect(p.likedBy.length).to.equal(1);
-              expect(p.likedBy).to.contain(String(account._id));
+              expect(p.likedBy).to.contain(account._id);
             });
           })
           .catch((err) => {
             throw err;
           }));
+
+      it('should error on duplicate likes', () =>
+        pins.update({ _id: inserted._id }, {
+          $addToSet: { likedBy: account._id },
+          $inc: { likes: 1 },
+        }).then(_ =>
+          chai.request(app)
+            .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+            .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+            .send({ dir: 1 })
+        ).catch((err) => {
+          expect(err.response).to.have.status(409);
+        }));
+
+      it('should remove likes from a pin', () =>
+        pins.update({ _id: inserted._id }, {
+          $addToSet: { likedBy: account._id },
+          $inc: { likes: 1 },
+        }).then(_ =>
+          chai.request(app)
+            .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+            .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+            .send({ dir: 0 })
+        ).then((res) => {
+          expect(res).to.have.status(204);
+          return pins.findOne().then((p) => {
+            expect(p.likes).to.equal(0);
+            expect(p.likedBy).to.be.empty;
+          });
+        })
+        .catch((err) => {
+          throw err;
+        }));
     });
 
-    describe('POST pin dislikes', () => {
+    describe('Pin dislikes', () => {
       it('should add dislikes to a pin', () =>
         chai.request(app)
-          .post(`/api/pins/${inserted._id}/dislikes`)
+          .put(`/api/pins/${inserted._id}/likes/${account._id}`)
           .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
-          .send({ accountId: account._id })
+          .send({ dir: -1 })
           .then((res) => {
             expect(res).to.have.status(204);
             return pins.findOne().then((p) => {
               expect(p.likes).to.equal(-1);
               expect(p.likedBy).to.be.empty;
-              expect(p.dislikedBy).to.contain(String(account._id));
+              expect(p.dislikedBy.length).to.equal(1);
+              expect(p.dislikedBy).to.contain(account._id);
             });
           })
           .catch((err) => {
             throw err;
           }));
+
+      it('should error on duplicate dislikes', () =>
+        pins.update({ _id: inserted._id }, {
+          $addToSet: { dislikedBy: account._id },
+          $inc: { likes: 1 },
+        }).then(_ =>
+          chai.request(app)
+            .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+            .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+            .send({ dir: -1 })
+        ).catch((err) => {
+          expect(err.response).to.have.status(409);
+        }));
+
+      it('should remove dislikes from a pin', () =>
+        pins.update({ _id: inserted._id }, {
+          $addToSet: { dislikedBy: account._id },
+          $inc: { likes: -1 },
+        }).then(_ =>
+          chai.request(app)
+            .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+            .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+            .send({ dir: 0 })
+        ).then((res) => {
+          expect(res).to.have.status(204);
+          return pins.findOne().then((p) => {
+            expect(p.likes).to.equal(0);
+            expect(p.dislikedBy).to.be.empty;
+          });
+        })
+        .catch((err) => {
+          throw err;
+        }));
     });
   });
 
