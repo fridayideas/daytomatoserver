@@ -18,6 +18,7 @@ module.exports = (db, auth) => {
         if (!result) {
           db.collection(ACCOUNTS_COLLECTION).insertOne({
             auth0Id: req.user.sub,
+            username: req.user.name,
             createDate: new Date(),
             numSeeds: 0,
             numPins: 0,
@@ -30,7 +31,7 @@ module.exports = (db, auth) => {
           res.status(200).json(result);
         }
       }).catch((err) => {
-        utils.handleError(res, err.message, 'Failed to get account.');
+        utils.handleError(res, err.message, 'Failed to get account.', 404);
       });
   });
 
