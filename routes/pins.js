@@ -133,7 +133,7 @@ module.exports = (db, auth) => {
 
 // PUT "/pins/like/:id/:userId
 // Adds or removes a like or dislike from a Pin
-  router.put('/:id/likes/:userId', (req, res) => {
+  router.put('/:id/votes/:userId', (req, res) => {
     if (!req.user || !req.params.userId) {
       utils.handleError(res, 'User id not provided', 'Invalid user id', 400);
       return;

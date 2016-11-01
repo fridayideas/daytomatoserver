@@ -193,7 +193,7 @@ describe('Pins', () => {
     describe('Pin likes', () => {
       it('should add likes to a pin', () =>
         chai.request(app)
-          .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+          .put(`/api/pins/${inserted._id}/votes/${account._id}`)
           .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
           .send({ dir: 1 })
           .then((res) => {
@@ -215,7 +215,7 @@ describe('Pins', () => {
           $inc: { likes: 1 },
         }).then(_ =>
           chai.request(app)
-            .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+            .put(`/api/pins/${inserted._id}/votes/${account._id}`)
             .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
             .send({ dir: 1 })
         ).catch((err) => {
@@ -228,7 +228,7 @@ describe('Pins', () => {
           $inc: { likes: 1 },
         }).then(_ =>
           chai.request(app)
-            .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+            .put(`/api/pins/${inserted._id}/votes/${account._id}`)
             .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
             .send({ dir: 0 })
         ).then((res) => {
@@ -246,7 +246,7 @@ describe('Pins', () => {
     describe('Pin dislikes', () => {
       it('should add dislikes to a pin', () =>
         chai.request(app)
-          .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+          .put(`/api/pins/${inserted._id}/votes/${account._id}`)
           .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
           .send({ dir: -1 })
           .then((res) => {
@@ -268,7 +268,7 @@ describe('Pins', () => {
           $inc: { likes: 1 },
         }).then(_ =>
           chai.request(app)
-            .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+            .put(`/api/pins/${inserted._id}/votes/${account._id}`)
             .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
             .send({ dir: -1 })
         ).catch((err) => {
@@ -281,7 +281,7 @@ describe('Pins', () => {
           $inc: { likes: -1 },
         }).then(_ =>
           chai.request(app)
-            .put(`/api/pins/${inserted._id}/likes/${account._id}`)
+            .put(`/api/pins/${inserted._id}/votes/${account._id}`)
             .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
             .send({ dir: 0 })
         ).then((res) => {
