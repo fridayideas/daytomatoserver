@@ -2,6 +2,8 @@ const express = require('express');
 const ObjectID = require('mongodb').ObjectID;
 const utils = require('../utils');
 
+const HttpError = utils.HttpError;
+
 const PINS_COLLECTION = 'pins';
 const ACCOUNTS_COLLECTION = 'accounts';
 
@@ -110,111 +112,92 @@ module.exports = (db, auth) => {
       });
   });
 
-  /**
-   * "/pins/:topLeftLat/:topLeftLong/:bottomRightLat/:bottomRightLong"
-   *   GET: Find pins inside specified coordinates.
-   *     topLeftLat : latitude of the top left of the bounding box
-   *     topLeftLong : longitude of the top left of the bounding box
-   *     bottomRightLat : latitude of the bottom right of the bounding box
-   *     bottomRightLong : longitude of the bottom right of the bounding box
-   */
+  function getUpdateParams(accountId, dir, inLikedBy, inDislikedBy) {
+    const params = {
+      $inc: { likes: dir },
+    };
+    switch (dir) {
+      case 1:
+        params.$addToSet = { likedBy: accountId };
+        params.$pull = { dislikedBy: accountId };
+        break;
+      case -1:
+        params.$addToSet = { dislikedBy: accountId };
+        params.$pull = { likedBy: accountId };
+        break;
+      default:
+        params.$pull = { likedBy: accountId, dislikedBy: accountId };
+        params.$inc.likes = inLikedBy ? -1 : 1;
+        break;
+    }
+    return params;
+  }
 
-// POST "/pins/like/:id/
-// Adds a like to the Pin ID
-
-  router.post('/:id/likes', (req, res) => {
-    const accountId = req.body.accountId;
-    let usernmlikedby = '';
-    if (!accountId) {
+// PUT "/pins/like/:id/:userId
+// Adds or removes a like or dislike from a Pin
+  router.put('/:id/votes/:userId', (req, res) => {
+    if (!req.user || !req.params.userId) {
       utils.handleError(res, 'User id not provided', 'Invalid user id', 400);
       return;
     }
 
-    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) },
-      (err, doc) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to update pin');
-        } else {
-          usernmlikedby = doc.username;
-        }
-      });
-
-    db.collection(PINS_COLLECTION)
-      .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
-        $addToSet: { likedBy: accountId },
-        $pull: { dislikedBy: accountId },
-        $inc: { likes: 1 },
-      }, (err, doc) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to update pin');
-        } else {
-          db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
-            _id: new ObjectID(doc.value.linkedAccount),
-          }, {
-            $push: {
-              feed: { $each: [`${usernmlikedby} liked your pin ${doc.value.pinName}`],
-                $slice: 5,
-                $position: 0,
-              },
-            },
-          }, (err1, _) => {
-            if (err1) {
-              utils.handleError(res, err1.message, 'Failed to update feed');
-            } else {
-              res.status(204).end();
-            }
-          });
-          res.status(204).end();
-        }
-      });
-  });
-
-// POST "/pins/dislikes/:id/
-// Takes a like from the Pin ID
-
-  router.post('/:id/dislikes', (req, res) => {
-    const accountId = req.body.accountId;
-    let usernmdislikedby = '';
-    if (!accountId) {
-      utils.handleError(res, 'User id not provided', 'Invalid user id', 400);
+    const dir = Math.sign(parseInt(req.body.dir, 10));
+    if (Number.isNaN(dir)) {
+      utils.handleError(res, 'dir is not a number', 'dir is not a number', 400);
       return;
     }
 
-    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) },
-      (err, doc) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to update pin');
-        } else {
-          usernmdislikedby = doc.username;
+    db.collection(ACCOUNTS_COLLECTION).findOne({ auth0Id: req.user.sub })
+      .then((acct) => {
+        if (!acct) {
+          throw new HttpError('User account not found', 404);
         }
-      });
+        return db.collection(PINS_COLLECTION)
+          .findOne({ _id: new ObjectID(req.params.id) })
+          .then(doc => ({ pin: doc, account: acct }));
+      })
+      .then(({ pin, account }) => {
+        const inLikedBy = pin.likedBy.map(String)
+          .includes(String(account._id));
+        const inDislikedBy = pin.dislikedBy.map(String)
+          .includes(String(account._id));
+        if (dir !== 0 &&
+          ((dir === 1 && inLikedBy) ||
+          (dir === -1 && inDislikedBy))) {
+          const action = dir === 1 ? 'liked' : 'disliked';
+          throw new HttpError(`account already ${action} pin`, 409);
+        }
+        const update = getUpdateParams(account._id, dir, inLikedBy, inDislikedBy);
 
-    db.collection(PINS_COLLECTION)
-      .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
-        $addToSet: { dislikedBy: accountId },
-        $pull: { likedBy: accountId },
-        $inc: { likes: -1 },
-      }, (err, doc) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to update pin');
-        } else {
-          db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
-            _id: new ObjectID(doc.value.linkedAccount),
+        return db.collection(PINS_COLLECTION)
+          .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, update)
+          .then(() => ({ pin, account }));
+      })
+      .then(({ pin, account }) => {
+        if (dir !== 0) {
+          return db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
+            _id: new ObjectID(pin.linkedAccount),
           }, {
             $push: {
-              feed: { $each: [`${usernmdislikedby} disliked your pin ${doc.value.pinName}`],
+              feed: {
+                $each: [`${account.username} liked your pin ${pin.name}`],
                 $slice: 5,
                 $position: 0,
               },
             },
-          }, (err1, _) => {
-            if (err) {
-              utils.handleError(res, err1.message, 'Failed to update feed');
-            } else {
-              res.status(204).end();
-            }
+          }).catch((err) => {
+            utils.handleError(res, err.message, 'Failed to update feed');
           });
-          res.status(204).end();
+        }
+        return Promise.resolve(pin);
+      })
+      .then(() => {
+        res.status(204).end();
+      }, (err) => {
+        if (err instanceof HttpError) {
+          utils.handleError(res, err.message, err.message, err.statusCode);
+        } else {
+          utils.handleError(res, err.message, err.message);
         }
       });
   });
