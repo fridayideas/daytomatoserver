@@ -20,9 +20,11 @@ module.exports = (db) => {
     const filterKeys = ['type', 'cost', 'linkedAccount'];
     const sortKeys = ['rating', 'cost', 'createDate', 'likes', 'name'];
     const sortKey = (req.query.sort || '').split(',');
+    const limit = ~~req.query.limit;
     const keys = [];
     for(var i in req.query){
       if(i == 'sort') {}
+      else if(i == 'limit') {}
       else if(i == 'linkedAccount'){
         keys.push( { [i] : req.query[i] } );
         keys.push( { [i] : { '$exists': true } } );
@@ -51,6 +53,7 @@ module.exports = (db) => {
     db.collection(TRIPS_COLLECTION)
       .find(filters)
       .sort(sort)
+      .limit(limit)
       .toArray((err, docs) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to get trips');

@@ -46,6 +46,7 @@ module.exports = (db, auth) => {
     for(var i in req.query){
       if(i == 'sort') {}
       else if(i == 'searchArea') {}
+      else if(i == 'limit') {}
       else if(i == 'linkedAccount'){
         keys.push( { [i] : req.query[i] } );
         keys.push( { [i] : { '$exists': true } } );
