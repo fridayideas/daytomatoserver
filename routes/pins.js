@@ -45,6 +45,7 @@ module.exports = (db, auth) => {
 
     for(var i in req.query){
       if(i == 'sort') {}
+      if(i == 'limit') {}
       else if(i == 'searchArea') {}
       else if(i == 'linkedAccount'){
         keys.push( { [i] : req.query[i] } );
@@ -90,8 +91,8 @@ module.exports = (db, auth) => {
     newPin.review = req.body.review || '';
     newPin.likes = req.body.likes || 0;
     newPin.comments = req.body.comments || [];
-    newPin.comments = req.body.likedBy || [];
-    newPin.comments = req.body.dislikedBy || [];
+    newPin.likedBy = req.body.likedBy || [];
+    newPin.dislikedBy = req.body.dislikedBy || [];
 
     if (!req.body.duration) {
       newPin.duration = -1; // Default duration, means never ending event (such as a park)
