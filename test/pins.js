@@ -10,7 +10,8 @@ const server = require('../index');
 
 function getPins() {
   return Array.from(new Array(10).keys()).map(i => ({
-    name: `Test${i}`,
+    name: `Test${9-i}`,
+    cost: i * 10,
     coordinate: {
       latitude: (i * 10) - 50,
       longitude: (i * 10) - 50,
@@ -68,7 +69,7 @@ describe('Pins', () => {
       chai.request(app)
         .get('/api/pins')
         .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
-        .query({ sort: 'name' })
+        .query({ sort: 'name,1' })
         .then((res) => {
           expect(res).to.have.status(200);
           expect(res.body.map(p => p.name)).to.deep.equal([
@@ -79,6 +80,21 @@ describe('Pins', () => {
         .catch((err) => {
           throw err;
         }));
+
+      it('should filter pins by cost', () =>
+        chai.request(app)
+          .get('/api/pins')
+          .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+          .query({ cost: '20,30' })
+          .then((res) => {
+            expect(res).to.have.status(200);
+            expect(res.body.map(p => p.name)).to.deep.equal([
+              'Test7', 'Test6',
+            ]);
+          })
+          .catch((err) => {
+            throw err;
+          }));
 
     it('should filter pins by coordinates', () =>
       chai.request(app)
