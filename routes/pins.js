@@ -23,21 +23,53 @@ module.exports = (db, auth) => {
    *         bottomRightLong = longitude of the bottom right of the bounding box
    *   POST: creates a new pin
    */
-  const sortKeys = ['likes', 'createDate'];
   router.route('/').get((req, res) => {
-    const searchArea = (req.query.searchArea || '').split(',');
-    const sortKey = req.query.sort || '';
+
+    const filterKeys = ['pinType', 'cost', 'linkedAccount'];
+    const sortKeys = ['rating', 'cost', 'createDate', 'likes', 'name'];
+    const sortKey = (req.query.sort || '').split(',');
     const limit = ~~req.query.limit;
-    const filters = searchArea.length === 4 ? {
+    const keys = [];
+
+    const searchArea = (req.query.searchArea || '').split(',');
+    const sArea = searchArea.length === 4 ? {
       $and: [
         { 'coordinate.latitude': { $lte: parseFloat(searchArea[0]) } },
         { 'coordinate.longitude': { $lte: parseFloat(searchArea[1]) } },
         { 'coordinate.latitude': { $gte: parseFloat(searchArea[2]) } },
         { 'coordinate.longitude': { $gte: parseFloat(searchArea[3]) } },
-      ],
+      ]
     } : {};
-    const sort = sortKeys.includes(sortKey) ? {
-      [sortKey]: 1,
+
+    keys.push(sArea);
+
+    for(var i in req.query){
+      if(i == 'sort') {}
+      else if(i == 'limit') {}
+      else if(i == 'searchArea') {}
+      else if(i == 'linkedAccount'){
+        keys.push( { [i] : req.query[i] } );
+        keys.push( { [i] : { '$exists': true } } );
+      }
+      else if(i == 'cost'){
+        const c = (req.query.cost).split(',');
+        keys.push( {
+          $and: [
+            { 'cost' : { $lte: parseInt(c[1]) } },
+            { 'cost' : { $gte: parseInt(c[0]) } }
+          ] }
+        );
+        keys.push( { [i] : { '$exists': true } } );
+      }
+      else{
+        keys.push( { [i] : parseInt(req.query[i]) } );
+        keys.push( { [i] : { '$exists': true } } );
+      }
+    }
+
+    const filters = keys.length>0 ? { $and: keys } : {};
+    const sort = sortKeys.includes(sortKey[0]) ? {
+      [sortKey[0]] : parseInt(sortKey[1])
     } : {};
 
     db.collection(PINS_COLLECTION)
@@ -59,8 +91,8 @@ module.exports = (db, auth) => {
     newPin.review = req.body.review || '';
     newPin.likes = req.body.likes || 0;
     newPin.comments = req.body.comments || [];
-    newPin.comments = req.body.likedBy || [];
-    newPin.comments = req.body.dislikedBy || [];
+    newPin.likedBy = req.body.likedBy || [];
+    newPin.dislikedBy = req.body.dislikedBy || [];
 
     if (!req.body.duration) {
       newPin.duration = -1; // Default duration, means never ending event (such as a park)
