@@ -94,8 +94,11 @@ module.exports = (db, auth) => {
     newPin.likedBy = req.body.likedBy || [];
     newPin.dislikedBy = req.body.dislikedBy || [];
 
-    if (!req.body.duration) {
-      newPin.duration = -1; // Default duration, means never ending event (such as a park)
+    if (!req.body.expireAt) {
+      newPin.expireAt = null; // Default expiration time, means never ending event (such as a park)
+    }
+    else {
+      newPin.expireAt = new Date(req.body.expireAt);  //set date and time for expiration. example : "2016-11-20T22:00:00.000Z"
     }
 
     db.collection(PINS_COLLECTION).insertOne(newPin, (err, doc) => {
