@@ -8,17 +8,6 @@ const TRIPS_COLLECTION = 'trips';
 
 const router = new express.Router();
 
-/* trip
- * name: ""
- * type: ""
- * likes: #
- * dislikes: #
- * rating: 1-5
- * pins: [pinid1,pinid2]
- *
- *
- */
-
 module.exports = (db) => {
   function pinInfoForTrip(trip) {
     const pinIds = trip.pins.map(ObjectID);
@@ -29,13 +18,16 @@ module.exports = (db) => {
 
   router.route('/').get((req, res) => {
     const filterKeys = ['type', 'cost', 'linkedAccount'];
-    const sortKeys = ['rating', 'cost', 'createDate', 'likes'];
+    const sortKeys = ['rating', 'cost', 'createDate', 'likes', 'name'];
     const sortKey = (req.query.sort || '').split(',');
+    const limit = ~~req.query.limit;
     const keys = [];
     for(var i in req.query){
       if(i == 'sort') {}
+      else if(i == 'limit') {}
       else if(i == 'linkedAccount'){
         keys.push( { [i] : req.query[i] } );
+        keys.push( { [i] : { '$exists': true } } );
       }
       else if(i == 'cost'){
         const c = (req.query.cost).split(',');
@@ -45,20 +37,23 @@ module.exports = (db) => {
             { 'cost' : { $gte: parseInt(c[0]) } }
           ] }
         );
+        keys.push( { [i] : { '$exists': true } } );
       }
       else{
         keys.push( { [i] : parseInt(req.query[i]) } );
+        keys.push( { [i] : { '$exists': true } } );
       }
     }
 
     const filters = keys.length>0 ? { $and: keys } : {};
-    const sort = sortKeys.includes(sortKey) ? {
-      [sortKey[0]] : [parseInt(sortKey[1])]
+    const sort = sortKeys.includes(sortKey[0]) ? {
+      [sortKey[0]] : parseInt(sortKey[1])
     } : {};
 
     db.collection(TRIPS_COLLECTION)
       .find(filters)
       .sort(sort)
+      .limit(limit)
       .toArray((err, docs) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to get trips');
