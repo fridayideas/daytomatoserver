@@ -46,6 +46,7 @@ Mongo + Express + Node server
 `cost`            | Optional. The approximate amount of money spent at the attraction | `{"cost":"0,0"}`
 `description`     | Optional. A description of the attraction | `{"description":"A historical castle"}`
 `image`           | Optional. A url to an image of the attraction | `{"image":"http://..."}`
+`expireAt`     | Optional. The date and time when the event expires. Do not include this field for a permanent pin. | `{"expireAt":"2016-11-20T22:00:00.000Z"}`
 `coordinate`      | Required. An array containing `latitude` and `longitude` | `{"coordinate":{"latitude":"49","longitude":"50"}}`
 `linkedAccount`   | Required. Account that has posted the pin | `{"linkedAccount":"123"}`
 
