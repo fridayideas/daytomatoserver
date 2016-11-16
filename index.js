@@ -4,6 +4,7 @@ const path = require('path');
 const mongodb = require('mongodb');
 const jwt = require('express-jwt');
 
+const auth = require('./middleware/auth');
 const routes = require('./routes/index');
 
 /**
@@ -56,11 +57,12 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 
-// JWT auth credentials for Auth0
-const auth = jwt({
-  secret: new Buffer(process.env.CLIENT_SECRET, 'base64'),
-  audience: process.env.CLIENT_ID,
-});
+// Auth credentials for Google Sign-in
+const authOpts = {
+  clientId: process.env.AUTH_CLIENT_ID,
+  clientSecret: process.env.AUTH_CLIENT_SECRET,
+  audience: process.env.AUTH_AUDIENCE,
+};
 
 // -------------- DATABASE SET UP ------------------------------
 // Create a database variable outside of the database connection callback
@@ -74,7 +76,7 @@ exports.connect = (connPort = 8080) =>
       console.log('Database connection ready');
 
       // Routes
-      app.use('/api', routes(db, auth));
+      app.use('/api', routes(db, auth(authOpts)));
 
       const server = app.listen(process.env.PORT || connPort, () => {
         const port = server.address().port;

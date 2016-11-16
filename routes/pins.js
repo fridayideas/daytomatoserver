@@ -237,7 +237,7 @@ module.exports = (db, auth) => {
         res.status(204).end();
       }, (err) => {
         if (err instanceof HttpError) {
-          utils.handleError(res, err.message, err.message, err.statusCode);
+          utils.handleError(res, err.message, err.message, err.status);
         } else {
           utils.handleError(res, err.message, err.message);
         }
