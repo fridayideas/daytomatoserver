@@ -27,7 +27,6 @@ module.exports = (db, auth) => {
 
     const filterKeys = ['pinType', 'cost', 'linkedAccount'];
     const sortKeys = ['rating', 'cost', 'createDate', 'likes', 'name'];
-    const sortKey = (req.query.sort || '').split(',');
     const limit = ~~req.query.limit;
     const keys = [];
 
@@ -43,8 +42,16 @@ module.exports = (db, auth) => {
 
     keys.push(sArea);
 
+    let sortKey = null;
+    let sortdir = 1;
+
     for(var i in req.query){
-      if(i == 'sort') {}
+      if(i == 'sort') {
+        sortKey = req.query[i];
+      }
+      else if(i == 'sortdir'){
+        sortdir = parseInt(req.query[i]);
+      }
       else if(i == 'limit') {}
       else if(i == 'searchArea') {}
       else if(i == 'linkedAccount'){
@@ -68,8 +75,8 @@ module.exports = (db, auth) => {
     }
 
     const filters = keys.length>0 ? { $and: keys } : {};
-    const sort = sortKeys.includes(sortKey[0]) ? {
-      [sortKey[0]] : parseInt(sortKey[1])
+    const sort = sortKeys.includes(sortKey) ? {
+      [sortKey] : sortdir
     } : {};
 
     db.collection(PINS_COLLECTION)
