@@ -69,7 +69,7 @@ describe('Pins', () => {
       chai.request(app)
         .get('/api/pins')
         .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
-        .query({ sort: 'name,1' })
+        .query({ sort: 'name' })
         .then((res) => {
           expect(res).to.have.status(200);
           expect(res.body.map(p => p.name)).to.deep.equal([
@@ -126,7 +126,7 @@ describe('Pins', () => {
           expect(created.review).to.equal('');
           expect(created.likes).to.equal(0);
           expect(created.comments).to.be.empty;
-          expect(created.duration).to.equal(-1);
+          expect(created.expireAt).to.equal(null);
         })
         .catch((err) => {
           throw err;
