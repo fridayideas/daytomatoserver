@@ -5,9 +5,10 @@ function handleError(res, reason, message, code) {
 }
 
 class HttpError extends Error {
-  constructor(message, code = 500) {
+  constructor(message, status = 500) {
     super(message);
-    this.statusCode = code;
+    Error.captureStackTrace(this, this.constructor);
+    this.status = status;
   }
 }
 
