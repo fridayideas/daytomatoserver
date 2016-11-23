@@ -182,20 +182,42 @@ module.exports = (db, auth) => {
         }
       });
 
-  //update myTrips to add or delete trip id's
-  }).put((req, res) => {
-    const updateMyTrips = req.body;
-    delete updateMyTrips._id;
+  //add trip to myTrips by id
+  //format: {"myTrips": id}
+}).post((req, res) => {
+    const tripId = req.body;
+    if(!tripId.myTrips){
+      utils.handleError(res, 'myTrips field not provided', 'Invalid format', 400);
+      return;
+    }
 
     db.collection(ACCOUNTS_COLLECTION).updateOne({ _id: new ObjectID(req.params.id) },
-      updateMyTrips, (err, result) => {
+      { $addToSet: tripId },
+      (err, result) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to update myTrips');
         } else {
           res.status(204).end();
         }
       });
-  });
+      //delete trip from myTrips, same format as post
+  }).delete((req, res) => {
+      const tripId = req.body;
+      if(!tripId.myTrips){
+        utils.handleError(res, 'myTrips field not provided', 'Invalid format', 400);
+        return;
+      }
+
+      db.collection(ACCOUNTS_COLLECTION).updateOne( { _id: new ObjectID(req.params.id) },
+        { $pull: tripId },
+        (err, result) => {
+          if (err) {
+            utils.handleError(res, err.message, 'Failed to update myTrips');
+          } else {
+            res.status(204).end();
+          }
+        });
+    });
 
 
   router.get('/token/:token', (req, res) => {
