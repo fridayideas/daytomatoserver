@@ -4,11 +4,19 @@ const utils = require('../utils');
 
 const PINS_COLLECTION = 'pins';
 const ACCOUNTS_COLLECTION = 'accounts';
+const TRIPS_COLLECTION = 'trips';
 
 const router = new express.Router();
 
 module.exports = (db, auth) => {
   router.use(auth);
+
+  function pinInfoForTrip(trip) {
+    const pinIds = trip.pins.map(ObjectID);
+    return db.collection(PINS_COLLECTION)
+      .find({ _id: { $in: pinIds } }).toArray()
+      .then(pins => Object.assign({}, trip, { pins }));
+  }
 
   // GET current authenticated user (stateless + uses token)
   // TODO a better name for this?
@@ -161,7 +169,16 @@ module.exports = (db, auth) => {
           utils.handleError(res, err.message, 'Failed to get my trips');
         } else {
           const account = result;
-          res.status(200).json(account.myTrips);
+          const tripIds = account.myTrips.map(ObjectID);
+          db.collection(TRIPS_COLLECTION).find({ _id: { $in: tripIds } } )
+            .toArray((err, docs) => {
+              if (err) {
+                utils.handleError(res, err.message, 'Failed to get myTrips.');
+              } else {
+                Promise.all(docs.map(pinInfoForTrip))
+                  .then(trips => res.status(200).json(trips));
+              }
+            });
         }
       });
 
