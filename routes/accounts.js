@@ -4,11 +4,19 @@ const utils = require('../utils');
 
 const PINS_COLLECTION = 'pins';
 const ACCOUNTS_COLLECTION = 'accounts';
+const TRIPS_COLLECTION = 'trips';
 
 const router = new express.Router();
 
 module.exports = (db, auth) => {
   router.use(auth);
+
+  function pinInfoForTrip(trip) {
+    const pinIds = trip.pins.map(ObjectID);
+    return db.collection(PINS_COLLECTION)
+      .find({ _id: { $in: pinIds } }).toArray()
+      .then(pins => Object.assign({}, trip, { pins }));
+  }
 
   // GET current authenticated user (stateless + uses token)
   // TODO a better name for this?
@@ -152,6 +160,65 @@ module.exports = (db, auth) => {
         }
       });
   });
+
+  //get all trip id's from myTrips
+  router.route('/:id/mytrips').get((req, res) => {
+    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
+      (err, result) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to get my trips');
+        } else {
+          const account = result;
+          const tripIds = account.myTrips.map(ObjectID);
+          db.collection(TRIPS_COLLECTION).find({ _id: { $in: tripIds } } )
+            .toArray((err, docs) => {
+              if (err) {
+                utils.handleError(res, err.message, 'Failed to get myTrips.');
+              } else {
+                Promise.all(docs.map(pinInfoForTrip))
+                  .then(trips => res.status(200).json(trips));
+              }
+            });
+        }
+      });
+
+  //add trip to myTrips by id
+  //format: {"myTrips": id}
+}).post((req, res) => {
+    const tripId = req.body;
+    if(!tripId.myTrips){
+      utils.handleError(res, 'myTrips field not provided', 'Invalid format', 400);
+      return;
+    }
+
+    db.collection(ACCOUNTS_COLLECTION).updateOne({ _id: new ObjectID(req.params.id) },
+      { $addToSet: tripId },
+      (err, result) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to update myTrips');
+        } else {
+          res.status(204).end();
+        }
+      });
+      //delete trip from myTrips, same format as post
+  }).delete((req, res) => {
+      const tripId = req.body;
+      if(!tripId.myTrips){
+        utils.handleError(res, 'myTrips field not provided', 'Invalid format', 400);
+        return;
+      }
+
+      db.collection(ACCOUNTS_COLLECTION).updateOne( { _id: new ObjectID(req.params.id) },
+        { $pull: tripId },
+        (err, result) => {
+          if (err) {
+            utils.handleError(res, err.message, 'Failed to update myTrips');
+          } else {
+            res.status(204).end();
+          }
+        });
+    });
+
 
   router.get('/token/:token', (req, res) => {
     console.log(req.params.token);
