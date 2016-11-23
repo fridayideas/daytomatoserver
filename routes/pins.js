@@ -102,7 +102,7 @@ module.exports = (db, auth) => {
     newPin.dislikedBy = req.body.dislikedBy || [];
 
     if (!req.body.expireAt) {
-      newPin.expireAt = null; // Default expiration time, means never ending event (such as a park)
+      //newPin.expireAt = null; // Default expiration time, means never ending event (such as a park)
     }
     else {
       newPin.expireAt = new Date(req.body.expireAt);  //set date and time for expiration. example : "2016-11-20T22:00:00.000Z"

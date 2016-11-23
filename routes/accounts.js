@@ -153,6 +153,34 @@ module.exports = (db, auth) => {
       });
   });
 
+  //get all trip id's from myTrips
+  router.route('/:id/mytrips').get((req, res) => {
+    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
+      (err, result) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to get my trips');
+        } else {
+          const account = result;
+          res.status(200).json(account.myTrips);
+        }
+      });
+
+  //update myTrips to add or delete trip id's
+  }).put((req, res) => {
+    const updateMyTrips = req.body;
+    delete updateMyTrips._id;
+
+    db.collection(ACCOUNTS_COLLECTION).updateOne({ _id: new ObjectID(req.params.id) },
+      updateMyTrips, (err, result) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to update myTrips');
+        } else {
+          res.status(204).end();
+        }
+      });
+  });
+
+
   router.get('/token/:token', (req, res) => {
     console.log(req.params.token);
     db.collection(ACCOUNTS_COLLECTION).findOne({ token: parseInt(req.params.token, 10) },
