@@ -168,6 +168,10 @@ module.exports = (db, auth) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to get my trips');
         } else {
+          if(!result){
+            utils.handleError(res, 'User id not found', 'Invalid user id', 400);
+            return;
+          }
           const account = result;
           const tripIds = account.myTrips.map(ObjectID);
           db.collection(TRIPS_COLLECTION).find({ _id: { $in: tripIds } } )
@@ -197,6 +201,10 @@ module.exports = (db, auth) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to update myTrips');
         } else {
+          if(!result){
+            utils.handleError(res, 'User id not found', 'Invalid user id', 400);
+            return;
+          }
           res.status(204).end();
         }
       });
@@ -214,6 +222,10 @@ module.exports = (db, auth) => {
           if (err) {
             utils.handleError(res, err.message, 'Failed to update myTrips');
           } else {
+            if(!result){
+              utils.handleError(res, 'User id not found', 'Invalid user id', 400);
+              return;
+            }
             res.status(204).end();
           }
         });
