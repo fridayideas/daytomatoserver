@@ -162,7 +162,7 @@ module.exports = (db, auth) => {
   });
 
   //get all trip id's from myTrips
-  router.route('/:id/mytrips').get((req, res) => {
+  router.route('/:id/trips').get((req, res) => {
     db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
       (err, result) => {
         if (err) {
@@ -252,19 +252,6 @@ module.exports = (db, auth) => {
           utils.handleError(res, err.message, 'Failed to delete account');
         } else {
           res.status(204).end();
-        }
-      });
-  });
-
-  // get all accounts
-  // for testing
-  router.get('/all/t', (req, res) => {
-    db.collection(ACCOUNTS_COLLECTION).find()
-      .toArray((err, docs) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to get pins.');
-        } else {
-          res.status(200).json(docs);
         }
       });
   });
