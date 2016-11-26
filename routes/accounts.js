@@ -161,36 +161,33 @@ module.exports = (db, auth) => {
       });
   });
 
-  //get all trip id's from myTrips
+  // get all trip id's from myTrips
   router.route('/:id/trips').get((req, res) => {
-    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) },
-      (err, result) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to get my trips');
-        } else {
-          if(!result){
-            utils.handleError(res, 'User id not found', 'Invalid user id', 400);
-            return;
-          }
-          const account = result;
-          const tripIds = account.myTrips.map(ObjectID);
-          db.collection(TRIPS_COLLECTION).find({ _id: { $in: tripIds } } )
-            .toArray((err, docs) => {
-              if (err) {
-                utils.handleError(res, err.message, 'Failed to get myTrips.');
-              } else {
-                Promise.all(docs.map(pinInfoForTrip))
-                  .then(trips => res.status(200).json(trips));
-              }
-            });
+    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(req.params.id) })
+      .then((account) => {
+        if (!account) {
+          utils.handleError(res, 'User id not found', 'Invalid user id', 400);
+          return;
         }
-      });
 
-  //add trip to myTrips by id
-  //format: {"myTrips": id}
-}).post((req, res) => {
+        const tripIds = account.myTrips.map(ObjectID);
+        db.collection(TRIPS_COLLECTION).find({ _id: { $in: tripIds } })
+          .toArray((err, docs) => {
+            if (err) {
+              utils.handleError(res, err.message, 'Failed to get myTrips.');
+            } else {
+              Promise.all(docs.map(pinInfoForTrip))
+                .then(trips => res.status(200).json(trips));
+            }
+          });
+      }, (err) => {
+        utils.handleError(res, err.message, 'Failed to get my trips');
+      });
+  // add trip to myTrips by id
+  // format: {"myTrips": id}
+  }).post((req, res) => {
     const tripId = req.body;
-    if(!tripId.myTrips){
+    if (!tripId.myTrips) {
       utils.handleError(res, 'myTrips field not provided', 'Invalid format', 400);
       return;
     }
@@ -201,36 +198,33 @@ module.exports = (db, auth) => {
         if (err) {
           utils.handleError(res, err.message, 'Failed to update myTrips');
         } else {
-          if(!result){
+          if (!result) {
             utils.handleError(res, 'User id not found', 'Invalid user id', 400);
             return;
           }
           res.status(204).end();
         }
       });
-      //delete trip from myTrips, same format as post
-  }).delete((req, res) => {
-      const tripId = req.body;
-      if(!tripId.myTrips){
-        utils.handleError(res, 'myTrips field not provided', 'Invalid format', 400);
-        return;
-      }
+  });
 
-      db.collection(ACCOUNTS_COLLECTION).updateOne( { _id: new ObjectID(req.params.id) },
-        { $pull: tripId },
-        (err, result) => {
-          if (err) {
-            utils.handleError(res, err.message, 'Failed to update myTrips');
-          } else {
-            if(!result){
-              utils.handleError(res, 'User id not found', 'Invalid user id', 400);
-              return;
-            }
-            res.status(204).end();
+  // delete trip from myTrips, same format as post
+  router.route('/:id/trips/:tripId').delete((req, res) => {
+    const tripId = req.params.tripId;
+
+    db.collection(ACCOUNTS_COLLECTION).updateOne({ _id: new ObjectID(req.params.id) },
+      { $pull: { myTrips: tripId } },
+      (err, result) => {
+        if (err) {
+          utils.handleError(res, err.message, 'Failed to update myTrips');
+        } else {
+          if (!result) {
+            utils.handleError(res, 'User id not found', 'Invalid user id', 400);
+            return;
           }
-        });
-    });
-
+          res.status(204).end();
+        }
+      });
+  });
 
   router.get('/token/:token', (req, res) => {
     console.log(req.params.token);
