@@ -30,6 +30,7 @@ module.exports = (db, auth) => {
             createDate: new Date(),
             numSeeds: 0,
             numPins: 0,
+            myTrips: [],
           }).then((created) => {
             const account = created.ops[0];
             delete account.auth0Id;
