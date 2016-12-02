@@ -24,7 +24,6 @@ module.exports = (db, auth) => {
    *   POST: creates a new pin
    */
   router.route('/').get((req, res) => {
-
     const filterKeys = ['pinType', 'cost', 'linkedAccount'];
     const sortKeys = ['rating', 'cost', 'createDate', 'likes', 'name'];
     const limit = ~~req.query.limit;
@@ -37,7 +36,7 @@ module.exports = (db, auth) => {
         { 'coordinate.longitude': { $lte: parseFloat(searchArea[1]) } },
         { 'coordinate.latitude': { $gte: parseFloat(searchArea[2]) } },
         { 'coordinate.longitude': { $gte: parseFloat(searchArea[3]) } },
-      ]
+      ],
     } : {};
 
     keys.push(sArea);
@@ -45,38 +44,32 @@ module.exports = (db, auth) => {
     let sortKey = null;
     let sortdir = 1;
 
-    for(var i in req.query){
-      if(i == 'sort') {
+    for (const i of Object.keys(req.query)) {
+      if (i === 'sort') {
         sortKey = req.query[i];
-      }
-      else if(i == 'sortdir'){
-        sortdir = parseInt(req.query[i]);
-      }
-      else if(i == 'limit') {}
-      else if(i == 'searchArea') {}
-      else if(i == 'linkedAccount'){
-        keys.push( { [i] : req.query[i] } );
-        keys.push( { [i] : { '$exists': true } } );
-      }
-      else if(i == 'cost'){
+      } else if (i === 'sortdir') {
+        sortdir = parseInt(req.query[i], 10);
+      } else if (i === 'linkedAccount') {
+        keys.push({ [i]: req.query[i] });
+        keys.push({ [i]: { $exists: true } });
+      } else if (i === 'cost') {
         const c = (req.query.cost).split(',');
-        keys.push( {
+        keys.push({
           $and: [
-            { 'cost' : { $lte: parseInt(c[1]) } },
-            { 'cost' : { $gte: parseInt(c[0]) } }
-          ] }
-        );
-        keys.push( { [i] : { '$exists': true } } );
-      }
-      else{
-        keys.push( { [i] : parseInt(req.query[i]) } );
-        keys.push( { [i] : { '$exists': true } } );
+            { cost: { $lte: parseInt(c[1], 10) } },
+            { cost: { $gte: parseInt(c[0], 10) } },
+          ],
+        });
+        keys.push({ [i]: { $exists: true } });
+      } else if (i !== 'limit' && i !== 'searchArea') {
+        keys.push({ [i]: parseInt(req.query[i], 10) });
+        keys.push({ [i]: { $exists: true } });
       }
     }
 
-    const filters = keys.length>0 ? { $and: keys } : {};
+    const filters = keys.length > 0 ? { $and: keys } : {};
     const sort = sortKeys.includes(sortKey) ? {
-      [sortKey] : sortdir
+      [sortKey]: sortdir,
     } : {};
 
     db.collection(PINS_COLLECTION)
@@ -102,10 +95,11 @@ module.exports = (db, auth) => {
     newPin.dislikedBy = req.body.dislikedBy || [];
 
     if (!req.body.expireAt) {
-      //newPin.expireAt = null; // Default expiration time, means never ending event (such as a park)
-    }
-    else {
-      newPin.expireAt = new Date(req.body.expireAt);  //set date and time for expiration. example : "2016-11-20T22:00:00.000Z"
+      // Default expiration time, means never ending event (such as a park)
+      // newPin.expireAt = null;
+    } else {
+      // set date and time for expiration. example : "2016-11-20T22:00:00.000Z"
+      newPin.expireAt = new Date(req.body.expireAt);
     }
 
     db.collection(PINS_COLLECTION).insertOne(newPin, (err, doc) => {

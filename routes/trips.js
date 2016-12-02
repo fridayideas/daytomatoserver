@@ -22,32 +22,28 @@ module.exports = (db) => {
     const sortKey = (req.query.sort || '').split(',');
     const limit = ~~req.query.limit;
     const keys = [];
-    for(var i in req.query){
-      if(i == 'sort') {}
-      else if(i == 'limit') {}
-      else if(i == 'linkedAccount'){
-        keys.push( { [i] : req.query[i] } );
-        keys.push( { [i] : { '$exists': true } } );
-      }
-      else if(i == 'cost'){
+    for (const i of Object.keys(req.query)) {
+      if (i === 'linkedAccount') {
+        keys.push({ [i]: req.query[i] });
+        keys.push({ [i]: { $exists: true } });
+      } else if (i === 'cost') {
         const c = (req.query.cost).split(',');
-        keys.push( {
+        keys.push({
           $and: [
-            { 'cost' : { $lte: parseInt(c[1]) } },
-            { 'cost' : { $gte: parseInt(c[0]) } }
-          ] }
-        );
-        keys.push( { [i] : { '$exists': true } } );
-      }
-      else{
-        keys.push( { [i] : parseInt(req.query[i]) } );
-        keys.push( { [i] : { '$exists': true } } );
+            { cost: { $lte: parseInt(c[1], 10) } },
+            { cost: { $gte: parseInt(c[0], 10) } },
+          ],
+        });
+        keys.push({ [i]: { $exists: true } });
+      } else if (i !== 'sort' && i !== 'limit') {
+        keys.push({ [i]: parseInt(req.query[i], 10) });
+        keys.push({ [i]: { $exists: true } });
       }
     }
 
-    const filters = keys.length>0 ? { $and: keys } : {};
+    const filters = keys.length > 0 ? { $and: keys } : {};
     const sort = sortKeys.includes(sortKey[0]) ? {
-      [sortKey[0]] : parseInt(sortKey[1])
+      [sortKey[0]]: parseInt(sortKey[1], 10),
     } : {};
 
     db.collection(TRIPS_COLLECTION)
@@ -110,49 +106,40 @@ module.exports = (db) => {
 
   router.post('/:id/likes', (req, res) => {
     const accountId = req.body.accountId;
-    let usernmlikedby = '';
     if (!accountId) {
       utils.handleError(res, 'User id not provided', 'Invalid user id', 400);
       return;
     }
 
-    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) },
-      (err, doc) => {
-        if (err) {
-          utils.handleError(res, err.message, 'Failed to update pin');
-        } else {
-          usernmlikedby = doc.username;
-
-          db.collection(TRIPS_COLLECTION)
-            .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
-              $addToSet: { likedBy: accountId },
-              $pull: { dislikedBy: accountId },
-              $inc: { likes: 1 },
-            }, (err, doc) => {
-              if (err) {
-                utils.handleError(res, err.message, 'Failed to add like to trip');
-              } else {
-                db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
-                  _id: new ObjectID(doc.value.linkedAccount),
-                }, {
-                  $push: {
-                    feed: { $each: [`${usernmlikedby} liked your trip ${doc.value.name}`],
-                      $slice: 5,
-                      $position: 0,
-                    },
-                  },
-                }, (err1, _) => {
-                  if (err1) {
-                    utils.handleError(res, err1.message, 'Failed to update feed');
-                  } else {
-                    res.status(204).end();
-                  }
-                });
-                res.status(204).end();
-              }
-          });
-        }
-      });
+    db.collection(ACCOUNTS_COLLECTION).findOne({ _id: new ObjectID(accountId) })
+      .then(doc => doc.username)
+      .then(usernmlikedby =>
+        db.collection(TRIPS_COLLECTION)
+          .findOneAndUpdate({ _id: new ObjectID(req.params.id) }, {
+            $addToSet: { likedBy: accountId },
+            $pull: { dislikedBy: accountId },
+            $inc: { likes: 1 },
+          }).then(doc => [doc, usernmlikedby]))
+      .then(([doc, usernmlikedby]) =>
+          db.collection(ACCOUNTS_COLLECTION)
+            .findOneAndUpdate({
+              _id: new ObjectID(doc.value.linkedAccount),
+            }, {
+              $push: {
+                feed: { $each: [`${usernmlikedby} liked your trip ${doc.value.name}`],
+                  $slice: 5,
+                  $position: 0,
+                },
+              },
+            })
+            .then(() => {
+              res.status(204).end();
+            }, (err) => {
+              utils.handleError(res, err.message, 'Failed to update feed');
+            }),
+        (err) => {
+          utils.handleError(res, err.message, 'Failed to add like to trip');
+        });
   });
 
   router.post('/:id/dislikes', (req, res) => {
@@ -221,43 +208,44 @@ module.exports = (db) => {
 
     db.collection(TRIPS_COLLECTION)
       .find({ _id: new ObjectID(req.params.id) })
-        .forEach( function(x) {
-          if(x.numRatings==null){
-            var newNumRatings = 1
-            var newRating = req.body.rating;
-          }
-          else{
-            var newNumRatings = x.numRatings + 1;
-            var newRating = (x.rating * x.numRatings + req.body.rating)/newNumRatings;
-          }
-          db.collection(TRIPS_COLLECTION).findOneAndUpdate( { _id: new ObjectID(req.params.id) },
-            { $set: { rating: newRating },
-              $inc: { numRatings: 1 } },
-              (err, doc) => {
+      .forEach((x) => {
+        let newNumRatings;
+        let newRating;
+        if (x.numRatings == null) {
+          newNumRatings = 1;
+          newRating = req.body.rating;
+        } else {
+          newNumRatings = x.numRatings + 1;
+          newRating = ((x.rating * x.numRatings) + req.body.rating) / newNumRatings;
+        }
+        db.collection(TRIPS_COLLECTION).findOneAndUpdate({ _id: new ObjectID(req.params.id) },
+          { $set: { rating: newRating },
+            $inc: { numRatings: 1 } },
+          (err, doc) => {
+            if (err) {
+              utils.handleError(res, err.message, 'Failed to find trip');
+            } else {
+              db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
+                _id: new ObjectID(doc.value.linkedAccount),
+              }, {
+                $push: {
+                  feed: { $each: [`${usernmratedby} rated your trip ${doc.value.name}, ${req.body.rating}/5`],
+                    $slice: 5,
+                    $position: 0,
+                  },
+                },
+              }, (err1, _) => {
                 if (err) {
-                  utils.handleError(res, err.message, 'Failed to find trip');
+                  utils.handleError(res, err1.message, 'Failed to update feed');
                 } else {
-                  db.collection(ACCOUNTS_COLLECTION).findOneAndUpdate({
-                    _id: new ObjectID(doc.value.linkedAccount),
-                  }, {
-                    $push: {
-                      feed: { $each: [`${usernmratedby} rated your trip ${doc.value.name}, ${req.body.rating}/5`],
-                        $slice: 5,
-                        $position: 0,
-                      },
-                    },
-                  }, (err1, _) => {
-                    if (err) {
-                      utils.handleError(res, err1.message, 'Failed to update feed');
-                    } else {
-                      res.status(204).end();
-                    }
-                  });
                   res.status(204).end();
                 }
-              }
-          );
-        });
+              });
+              res.status(204).end();
+            }
+          }
+        );
+      });
   });
 
   return router;
