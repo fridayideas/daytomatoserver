@@ -6,6 +6,8 @@ const expect = chai.expect;
 
 // Set up env vars
 require('dotenv').config();
+
+const { TEST_JWT } = require('./auth_bootstrap');
 const server = require('../index');
 
 describe('Accounts', () => {
@@ -29,7 +31,7 @@ describe('Accounts', () => {
     it('should create a new user account if none exists', () =>
       chai.request(app)
         .get('/api/accounts/currentuser')
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .then((res) => {
           expect(res).to.have.status(200);
           const account = res.body;
@@ -51,7 +53,7 @@ describe('Accounts', () => {
       }).then(res => res.ops[0]).then(acct =>
         chai.request(app)
           .get('/api/accounts/currentuser')
-          .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+          .set('Authorization', `Bearer ${TEST_JWT}`)
           .then((res) => {
             expect(res).to.have.status(200);
             const account = res.body;
