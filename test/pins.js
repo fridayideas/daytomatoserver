@@ -6,6 +6,8 @@ const expect = chai.expect;
 
 // Set up env vars
 require('dotenv').config();
+
+const { TEST_JWT } = require('./auth_bootstrap');
 const server = require('../index');
 
 function getPins() {
@@ -42,7 +44,7 @@ describe('Pins', () => {
     it('should get all the pins', () =>
       chai.request(app)
         .get('/api/pins')
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .then((res) => {
           expect(res).to.have.status(200);
           expect(res.body).to.be.a('array');
@@ -54,7 +56,7 @@ describe('Pins', () => {
     it('should get a limited number of pins', () =>
       chai.request(app)
         .get('/api/pins')
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .query({ limit: 5 })
         .then((res) => {
           expect(res).to.have.status(200);
@@ -68,7 +70,7 @@ describe('Pins', () => {
     it('should sort pins by name', () =>
       chai.request(app)
         .get('/api/pins')
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .query({ sort: 'name' })
         .then((res) => {
           expect(res).to.have.status(200);
@@ -84,7 +86,7 @@ describe('Pins', () => {
     it('should filter pins by cost', () =>
       chai.request(app)
         .get('/api/pins')
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .query({ cost: '20,30' })
         .then((res) => {
           expect(res).to.have.status(200);
@@ -99,7 +101,7 @@ describe('Pins', () => {
     it('should filter pins by coordinates', () =>
       chai.request(app)
         .get('/api/pins')
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .query({ searchArea: [50, 50, 0, 0].join() })
         .then((res) => {
           expect(res).to.have.status(200);
@@ -114,7 +116,7 @@ describe('Pins', () => {
     it('should set default property values', () =>
       chai.request(app)
         .post('/api/pins')
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .send({ name: 'Test1' })
         .then((res) => {
           expect(res).to.have.status(201);
@@ -144,7 +146,7 @@ describe('Pins', () => {
     it('should update a particular pin', () =>
       chai.request(app)
         .put(`/api/pins/${inserted._id}`)
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .send({
           name: 'Updated',
           cost: 11.0,
@@ -175,7 +177,7 @@ describe('Pins', () => {
     it('should update a particular pin', () =>
       chai.request(app)
         .delete(`/api/pins/${inserted._id}`)
-        .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+        .set('Authorization', `Bearer ${TEST_JWT}`)
         .then((res) => {
           expect(res).to.have.status(204);
           return pins.count().then((count) => {
@@ -210,7 +212,7 @@ describe('Pins', () => {
       it('should add likes to a pin', () =>
         chai.request(app)
           .put(`/api/pins/${inserted._id}/votes/${account._id}`)
-          .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+          .set('Authorization', `Bearer ${TEST_JWT}`)
           .send({ dir: 1 })
           .then((res) => {
             expect(res).to.have.status(204);
@@ -232,7 +234,7 @@ describe('Pins', () => {
         }).then(_ =>
           chai.request(app)
             .put(`/api/pins/${inserted._id}/votes/${account._id}`)
-            .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+            .set('Authorization', `Bearer ${TEST_JWT}`)
             .send({ dir: 1 })
         ).catch((err) => {
           expect(err.response).to.have.status(409);
@@ -245,7 +247,7 @@ describe('Pins', () => {
         }).then(_ =>
           chai.request(app)
             .put(`/api/pins/${inserted._id}/votes/${account._id}`)
-            .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+            .set('Authorization', `Bearer ${TEST_JWT}`)
             .send({ dir: 0 })
         ).then((res) => {
           expect(res).to.have.status(204);
@@ -263,7 +265,7 @@ describe('Pins', () => {
       it('should add dislikes to a pin', () =>
         chai.request(app)
           .put(`/api/pins/${inserted._id}/votes/${account._id}`)
-          .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+          .set('Authorization', `Bearer ${TEST_JWT}`)
           .send({ dir: -1 })
           .then((res) => {
             expect(res).to.have.status(204);
@@ -285,7 +287,7 @@ describe('Pins', () => {
         }).then(_ =>
           chai.request(app)
             .put(`/api/pins/${inserted._id}/votes/${account._id}`)
-            .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+            .set('Authorization', `Bearer ${TEST_JWT}`)
             .send({ dir: -1 })
         ).catch((err) => {
           expect(err.response).to.have.status(409);
@@ -298,7 +300,7 @@ describe('Pins', () => {
         }).then(_ =>
           chai.request(app)
             .put(`/api/pins/${inserted._id}/votes/${account._id}`)
-            .set('Authorization', `Bearer ${process.env.TEST_JWT}`)
+            .set('Authorization', `Bearer ${TEST_JWT}`)
             .send({ dir: 0 })
         ).then((res) => {
           expect(res).to.have.status(204);

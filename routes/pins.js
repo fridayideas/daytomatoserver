@@ -96,7 +96,7 @@ module.exports = (db, auth) => {
 
     if (!req.body.expireAt) {
       // Default expiration time, means never ending event (such as a park)
-      // newPin.expireAt = null;
+      newPin.expireAt = null;
     } else {
       // set date and time for expiration. example : "2016-11-20T22:00:00.000Z"
       newPin.expireAt = new Date(req.body.expireAt);
